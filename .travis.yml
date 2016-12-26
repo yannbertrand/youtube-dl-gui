@@ -1,3 +1,5 @@
+language: node_js
+
 os:
   - linux
   - osx
@@ -6,8 +8,11 @@ branches:
   only:
     - master
 
-env:
-  - NODE_VERSION="6.3.0"
+node_js:
+  - "node"
+  - "6"
+  - "5"
+  - "4"
 
 before_script:
  - chmod +x ./scripts/travis-build.sh
