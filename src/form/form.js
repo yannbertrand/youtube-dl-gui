@@ -46,6 +46,14 @@ function videoToHTML(video) {
             '<td class="right">' + video.duration + '</td>' +
             '<td class="right">' + video.size + '</td>' +
             '<td>' + video.status + '</td>' +
+            '<td>' +
+                '<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
+                    '<span class="fa fa-folder-open"></span>' +
+                '</button>' +
+                '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm">' +
+                    '<span class="fa fa-trash"></span>' +
+                '</button>' +
+            '</td>' +
         '</tr>';
 }
 
