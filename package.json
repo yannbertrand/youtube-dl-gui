@@ -1,15 +1,13 @@
 {
-  "name": "electron-boilerplate",
-  "productName": "Electron Boilerplate",
-  "description": "Starter for your Electron application",
+  "name": "youtube-dl-gui",
+  "productName": "youtube-dl gui",
+  "description": "A youtube-dl graphical user interface",
   "version": "0.0.0",
-  "author": "Mr. Gumby <mr.gumby@example.com>",
-  "copyright": "© 2016, Gumby inc.",
-  "homepage": "http://example.com",
+  "author": "Yann Bertrand <github@yann-bertrand.fr>",
   "license": "MIT",
   "main": "app/background.js",
   "build": {
-    "appId": "com.example.electron-boilerplate",
+    "appId": "fr.yann-bertrand.youtube-dl-gui",
     "files": [
       "app/**/*",
       "node_modules/**/*",
