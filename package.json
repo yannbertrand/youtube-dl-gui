@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "bootstrap": "next",
+    "font-awesome": "^4.7.0",
     "fs-jetpack": "^0.10.2"
   },
   "devDependencies": {
