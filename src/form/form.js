@@ -1,8 +1,9 @@
 const videos = [];
 
 export var init = function () {
-    const $form = $('form');
-    const $table = $('table');
+    const $body = $('body');
+    const $form = $body.find('form');
+    const $table = $body.find('table');
     const $input = $form.find('input');
     const $submit = $form.find('button');
     const $icon = $submit.find('span');
@@ -10,6 +11,7 @@ export var init = function () {
     $table.hide();
 
     $form.on('submit', function (event) {
+        $body.removeClass('center-vertical');
         $icon.addClass('fa-spin');
         $submit.prop('disabled', true);
 
