@@ -5,11 +5,11 @@
 import os from 'os'; // native node.js module
 import { remote } from 'electron'; // native electron module
 import jetpack from 'fs-jetpack'; // module loaded from npm
-import { greet } from './hello_world/hello_world'; // code authored by you in this project
+import { init } from './form/form';
 import env from './env';
 
 global.Tether = require('tether');
-global.jQuery = require('jquery');
+global.jQuery = global.$ = require('jquery');
 require('bootstrap');
 
 console.log('Loaded environment variables:', env);
@@ -22,5 +22,5 @@ var appDir = jetpack.cwd(app.getAppPath());
 console.log('The author of this app is:', appDir.read('package.json', 'json').author);
 
 document.addEventListener('DOMContentLoaded', function () {
-
+    init();
 });
