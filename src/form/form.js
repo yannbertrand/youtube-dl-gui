@@ -43,8 +43,8 @@ function videoToHTML(video) {
     return '<tr>' +
             '<td>' + video.name + '</td>' +
             '<td>' + video.channel + '</td>' +
-            '<td>' + video.duration + '</td>' +
-            '<td>' + video.size + '</td>' +
+            '<td class="right">' + video.duration + '</td>' +
+            '<td class="right">' + video.size + '</td>' +
             '<td>' + video.status + '</td>' +
         '</tr>';
 }
