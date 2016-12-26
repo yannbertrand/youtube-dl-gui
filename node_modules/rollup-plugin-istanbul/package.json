@@ -1,0 +1,54 @@
+{
+  "name": "rollup-plugin-istanbul",
+  "version": "1.1.0",
+  "description": "Seamless integration between Rollup and Istanbul.",
+  "main": "dist/rollup-plugin-istanbul.cjs.js",
+  "jsnext:main": "dist/rollup-plugin-istanbul.es6.js",
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "rollup-plugin",
+    "istanbul",
+    "es2015",
+    "es6",
+    "rollup",
+    "coverage"
+  ],
+  "homepage": "https://github.com/artberri/rollup-plugin-istanbul",
+  "author": {
+    "name": "Alberto Varela",
+    "email": "alberto@berriart.com",
+    "url": "http://www.berriart.com"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prebuild": "rm -rf dist/*",
+    "build": "rollup -c",
+    "pretest": "npm run build",
+    "test": "mocha",
+    "prepublish": "npm run lint && npm test",
+    "lint": "eslint src/index.js test/*.js"
+  },
+  "dependencies": {
+    "istanbul": "^0.4.2",
+    "rollup-pluginutils": "^1.3.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-preset-es2015": "^6.14.0",
+    "eslint": "^3.0",
+    "mocha": "^3.0",
+    "rollup": "^0.36",
+    "rollup-plugin-babel": "^2.3.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/artberri/rollup-plugin-istanbul.git"
+  },
+  "bugs": {
+    "url": "https://github.com/artberri/rollup-plugin-istanbul/issues"
+  }
+}
