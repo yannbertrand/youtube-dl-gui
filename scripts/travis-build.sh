@@ -14,5 +14,5 @@ fi
 node --version
 npm --version
 
-npm install
+yarn install
 npm test & npm run e2e
