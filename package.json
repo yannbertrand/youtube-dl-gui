@@ -28,6 +28,8 @@
   },
   "dependencies": {
     "bootstrap": "next",
+    "datatables.net": "^3.2.2",
+    "datatables.net-bs": "^3.2.2",
     "font-awesome": "^4.7.0",
     "fs-jetpack": "^0.10.2"
   },

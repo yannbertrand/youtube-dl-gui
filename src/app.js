@@ -12,6 +12,10 @@ global.Tether = require('tether');
 global.jQuery = global.$ = require('jquery');
 require('bootstrap');
 
+require('datatables.net')();
+require('datatables.net-bs')();
+
+
 console.log('Loaded environment variables:', env);
 
 var app = remote.app;

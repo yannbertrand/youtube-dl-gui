@@ -30,10 +30,12 @@ export var init = function () {
 
 function downloadVideoAndAddRowToTable(link, callback) {
     const $table = $('table');
+    const $datatable = $table.DataTable();
+    const $tbody = $table.find('tbody');
     const video = getVideoInfo(link);
     const $tr = $(videoToHTML(video));
 
-    $table.append($tr);
+    $datatable.row.add($tr).draw(false);
     $table.show();
 
     callback();
