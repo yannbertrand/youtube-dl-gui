@@ -1,5 +1,13 @@
 const youtubedl = require('youtube-dl');
 
+const STATUS = {
+    DOWNLOADING: 'Downloading...',
+    PAUSED: 'Paused',
+    STOPPED: 'Stopped',
+    ERROR: 'Error',
+    DONE: 'Done',
+};
+
 const videos = [];
 
 export var init = function () {
@@ -64,7 +72,7 @@ function videoToHTML(video) {
             '<td>' + video.uploader + '</td>' +
             '<td class="right">' + video.duration + '</td>' +
             '<td class="right">' + video.filesize + '</td>' +
-            '<td>' + video.status + '</td>' +
+            '<td>' + STATUS.DOWNLOADING + '</td>' +
             '<td>' +
                 '<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
                     '<span class="fa fa-folder-open"></span>' +
