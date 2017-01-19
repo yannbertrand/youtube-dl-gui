@@ -1,5 +1,6 @@
 const youtubedl = require('youtube-dl');
 const prettyBytes = require('pretty-bytes');
+const { remote } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -10,6 +11,12 @@ const STATUS = {
     ERROR: 'Error',
     DONE: 'Done',
 };
+
+const DESTINATION_FOLDER = path.join(remote.app.getPath('videos'), 'YouTube');
+
+if (! fs.existsSync(DESTINATION_FOLDER)) {
+  fs.mkdirSync(DESTINATION_FOLDER);
+}
 
 const videos = [];
 
@@ -37,6 +44,7 @@ export var init = function () {
 
         downloadVideoAndAddRowToTable($input.val(), function (error) {
             if (error) {
+                console.log(error);
                 $inputGroup.addClass('has-danger');
             } else {
                 $input.val('');
@@ -68,15 +76,17 @@ function downloadVideoAndAddRowToTable(link, callback) {
         $('.dataTables_scrollBody').css('max-height', 200);
     }
 
+    console.log(DESTINATION_FOLDER);
+
     const video = youtubedl(link,
       // Optional arguments passed to youtube-dl.
       ['--format=18'],
       // Additional options can be given for calling `child_process.execFile()`.
-      { cwd: __dirname });
+      { cwd: DESTINATION_FOLDER });
 
     // Will be called when the download starts.
     video.on('info', function(info) {
-      video.pipe(fs.createWriteStream(info._filename));
+      video.pipe(fs.createWriteStream(path.join(DESTINATION_FOLDER, info._filename)));
       console.log(info);
       const $tr = $(videoToHTML(info));
 
