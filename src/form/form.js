@@ -24,12 +24,13 @@ export var init = function () {
     const $body = $('body');
     const $form = $body.find('form');
     const $table = $body.find('table');
+    const $tableParent = $table.parent();
     const $inputGroup = $form.find('.input-group');
     const $input = $inputGroup.find('input');
     const $submit = $form.find('button');
     const $icon = $submit.find('span');
 
-    $table.hide();
+    $tableParent.hide();
 
     $input.on('input', function () {
         if ($inputGroup.hasClass('has-danger')) {
@@ -38,7 +39,6 @@ export var init = function () {
     });
 
     $form.on('submit', function (event) {
-        $body.removeClass('center-vertical');
         $icon.addClass('fa-spin');
         $submit.prop('disabled', true);
 
@@ -53,6 +53,8 @@ export var init = function () {
             $input.focus();
             $icon.removeClass('fa-spin');
             $submit.prop('disabled', false);
+            $body.removeClass('center-vertical');
+            $tableParent.show();
         });
 
         event.preventDefault();
@@ -89,7 +91,6 @@ function downloadVideoAndAddRowToTable(link, callback) {
       const $tr = $(videoToHTML(info));
 
       $datatable.row.add($tr).draw(false);
-      $table.show();
 
       callback();
 
