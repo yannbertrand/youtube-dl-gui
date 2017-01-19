@@ -76,8 +76,6 @@ function downloadVideoAndAddRowToTable(link, callback) {
         $('.dataTables_scrollBody').css('max-height', 200);
     }
 
-    console.log(DESTINATION_FOLDER);
-
     const video = youtubedl(link,
       // Optional arguments passed to youtube-dl.
       ['--format=18'],
