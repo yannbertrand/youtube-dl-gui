@@ -1,3 +1,5 @@
+const youtubedl = require('youtube-dl');
+
 const videos = [];
 
 export var init = function () {
@@ -30,6 +32,7 @@ export var init = function () {
 
 function downloadVideoAndAddRowToTable(link, callback) {
     const $table = $('table');
+
     let $datatable;
     if ($.fn.dataTable.isDataTable('table')) {
         $datatable = $table.DataTable();
@@ -43,22 +46,24 @@ function downloadVideoAndAddRowToTable(link, callback) {
 
         $('.dataTables_scrollBody').css('max-height', 200);
     }
-    const $tbody = $table.find('tbody');
-    const video = getVideoInfo(link);
-    const $tr = $(videoToHTML(video));
 
-    $datatable.row.add($tr).draw(false);
-    $table.show();
+    youtubedl.getInfo(link, [], function (error, video) {
+        console.log(error, video);
+        const $tr = $(videoToHTML(video));
 
-    callback();
+        $datatable.row.add($tr).draw(false);
+        $table.show();
+
+        callback();
+    });
 }
 
 function videoToHTML(video) {
     return '<tr>' +
-            '<td>' + video.name + '</td>' +
-            '<td>' + video.channel + '</td>' +
+            '<td>' + video.title + '</td>' +
+            '<td>' + video.uploader + '</td>' +
             '<td class="right">' + video.duration + '</td>' +
-            '<td class="right">' + video.size + '</td>' +
+            '<td class="right">' + video.filesize + '</td>' +
             '<td>' + video.status + '</td>' +
             '<td>' +
                 '<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
@@ -69,14 +74,4 @@ function videoToHTML(video) {
                 '</button>' +
             '</td>' +
         '</tr>';
-}
-
-function getVideoInfo(link) {
-    return {
-        name: 'Hello',
-        channel: 'World',
-        duration: '00:00',
-        size: '10MB',
-        status: 'Downloading...',
-    };
 }
