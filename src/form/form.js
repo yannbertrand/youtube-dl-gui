@@ -92,6 +92,11 @@ function downloadVideoAndAddRowToTable(link, callback) {
       $table.show();
 
       callback();
+
+      video.on('end', function() {
+        videoEnd($tr);
+        console.log('finished downloading!');
+      });
     });
 
     video.on('error', callback);
@@ -101,9 +106,7 @@ function downloadVideoAndAddRowToTable(link, callback) {
       console.log('filename: ' + info._filename + ' already downloaded.');
     });
 
-    video.on('end', function() {
-      console.log('finished downloading!');
-    });
+
 }
 
 function videoToHTML(video) {
@@ -112,7 +115,7 @@ function videoToHTML(video) {
             '<td>' + video.uploader + '</td>' +
             '<td class="right">' + video.duration + '</td>' +
             '<td class="right">' + prettyBytes(video.size) + '</td>' +
-            '<td>' + STATUS.DOWNLOADING + '</td>' +
+            '<td class="status">' + STATUS.DOWNLOADING + '</td>' +
             '<td>' +
                 '<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
                     '<span class="fa fa-folder-open"></span>' +
@@ -122,4 +125,8 @@ function videoToHTML(video) {
                 '</button>' +
             '</td>' +
         '</tr>';
+}
+
+function videoEnd($tr) {
+    $tr.find('td.status').text(STATUS.DONE);
 }
