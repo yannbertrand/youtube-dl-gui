@@ -1,6 +1,6 @@
 const youtubedl = require('youtube-dl');
 const prettyBytes = require('pretty-bytes');
-const { remote } = require('electron');
+const { remote, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -95,7 +95,7 @@ function downloadVideoAndAddRowToTable(link, callback) {
       callback();
 
       video.on('end', function() {
-        videoEnd($tr);
+        videoEnd($tr, info);
         console.log('finished downloading!');
       });
     });
@@ -117,10 +117,7 @@ function videoToHTML(video) {
             '<td class="right">' + video.duration + '</td>' +
             '<td class="right">' + prettyBytes(video.size) + '</td>' +
             '<td class="status">' + STATUS.DOWNLOADING + '</td>' +
-            '<td>' +
-                '<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
-                    '<span class="fa fa-folder-open"></span>' +
-                '</button>' +
+            '<td class="actions">' +
                 '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm">' +
                     '<span class="fa fa-trash"></span>' +
                 '</button>' +
@@ -128,6 +125,11 @@ function videoToHTML(video) {
         '</tr>';
 }
 
-function videoEnd($tr) {
+function videoEnd($tr, info) {
     $tr.find('td.status').text(STATUS.DONE);
+
+    const $button = $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
+        '<span class="fa fa-folder-open"></span>' +
+    '</button>').on('click', () => shell.showItemInFolder(path.join(DESTINATION_FOLDER, info._filename)));
+    $tr.find('td.actions').html($button);
 }
