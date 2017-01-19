@@ -31,7 +31,8 @@
     "datatables.net": "^3.2.2",
     "datatables.net-bs": "^3.2.2",
     "font-awesome": "^4.7.0",
-    "fs-jetpack": "^0.10.2"
+    "fs-jetpack": "^0.10.2",
+    "youtube-dl": "^1.11.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
