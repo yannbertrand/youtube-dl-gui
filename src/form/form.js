@@ -30,7 +30,19 @@ export var init = function () {
 
 function downloadVideoAndAddRowToTable(link, callback) {
     const $table = $('table');
-    const $datatable = $table.DataTable();
+    let $datatable;
+    if ($.fn.dataTable.isDataTable('table')) {
+        $datatable = $table.DataTable();
+    } else {
+        $datatable = $table.DataTable({
+            info: false,
+            paging: false,
+            scrollCollapse: true,
+            scrollY: '10vw',
+        });
+
+        $('.dataTables_scrollBody').css('max-height', 200);
+    }
     const $tbody = $table.find('tbody');
     const video = getVideoInfo(link);
     const $tr = $(videoToHTML(video));
