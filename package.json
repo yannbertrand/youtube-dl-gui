@@ -32,6 +32,7 @@
     "datatables.net-bs": "^3.2.2",
     "font-awesome": "^4.7.0",
     "fs-jetpack": "^0.10.2",
+    "pretty-bytes": "^4.0.2",
     "youtube-dl": "^1.11.1"
   },
   "devDependencies": {
