@@ -1,4 +1,7 @@
 const youtubedl = require('youtube-dl');
+const prettyBytes = require('pretty-bytes');
+const path = require('path');
+const fs = require('fs');
 
 const STATUS = {
     DOWNLOADING: 'Downloading...',
@@ -14,11 +17,18 @@ export var init = function () {
     const $body = $('body');
     const $form = $body.find('form');
     const $table = $body.find('table');
-    const $input = $form.find('input');
+    const $inputGroup = $form.find('.input-group');
+    const $input = $inputGroup.find('input');
     const $submit = $form.find('button');
     const $icon = $submit.find('span');
 
     $table.hide();
+
+    $input.on('input', function () {
+        if ($inputGroup.hasClass('has-danger')) {
+            $inputGroup.removeClass('has-danger');
+        }
+    });
 
     $form.on('submit', function (event) {
         $body.removeClass('center-vertical');
@@ -26,10 +36,13 @@ export var init = function () {
         $submit.prop('disabled', true);
 
         downloadVideoAndAddRowToTable($input.val(), function (error) {
-            if (!error) {
-                $input.val('').focus();
+            if (error) {
+                $inputGroup.addClass('has-danger');
+            } else {
+                $input.val('');
             }
 
+            $input.focus();
             $icon.removeClass('fa-spin');
             $submit.prop('disabled', false);
         });
@@ -55,14 +68,33 @@ function downloadVideoAndAddRowToTable(link, callback) {
         $('.dataTables_scrollBody').css('max-height', 200);
     }
 
-    youtubedl.getInfo(link, [], function (error, video) {
-        console.log(error, video);
-        const $tr = $(videoToHTML(video));
+    const video = youtubedl(link,
+      // Optional arguments passed to youtube-dl.
+      ['--format=18'],
+      // Additional options can be given for calling `child_process.execFile()`.
+      { cwd: __dirname });
 
-        $datatable.row.add($tr).draw(false);
-        $table.show();
+    // Will be called when the download starts.
+    video.on('info', function(info) {
+      video.pipe(fs.createWriteStream(info._filename));
+      console.log(info);
+      const $tr = $(videoToHTML(info));
 
-        callback();
+      $datatable.row.add($tr).draw(false);
+      $table.show();
+
+      callback();
+    });
+
+    video.on('error', callback);
+
+    // Will be called if download was already completed and there is nothing more to download.
+    video.on('complete', function complete(info) {
+      console.log('filename: ' + info._filename + ' already downloaded.');
+    });
+
+    video.on('end', function() {
+      console.log('finished downloading!');
     });
 }
 
@@ -71,7 +103,7 @@ function videoToHTML(video) {
             '<td>' + video.title + '</td>' +
             '<td>' + video.uploader + '</td>' +
             '<td class="right">' + video.duration + '</td>' +
-            '<td class="right">' + video.filesize + '</td>' +
+            '<td class="right">' + prettyBytes(video.size) + '</td>' +
             '<td>' + STATUS.DOWNLOADING + '</td>' +
             '<td>' +
                 '<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
