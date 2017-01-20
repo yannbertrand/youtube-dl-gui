@@ -19,6 +19,3 @@ before_script:
 
 script: ./scripts/travis-build.sh
 
-cache:
-  directories:
-    - node_modules
