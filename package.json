@@ -30,6 +30,7 @@
     "bootstrap": "next",
     "datatables.net": "^3.2.2",
     "datatables.net-bs": "^3.2.2",
+    "electron-config": "^0.2.1",
     "font-awesome": "^4.7.0",
     "fs-jetpack": "^0.10.2",
     "pretty-bytes": "^4.0.2",
