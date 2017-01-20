@@ -80,7 +80,12 @@ function downloadVideoAndAddRowToTable(link, $datatable, callback) {
 
     // Will be called when the download starts.
     video.on('info', function(info) {
-      video.pipe(fs.createWriteStream(path.join(DESTINATION_FOLDER, info._filename)));
+      const destination = path.join(DESTINATION_FOLDER, info.uploader, info._filename);
+      if (! fs.existsSync(destination)) {
+        fs.mkdirSync(destination);
+      }
+
+      video.pipe(fs.createWriteStream(destination));
       console.log(info);
       const $tr = $(videoToHTML(info));
 
