@@ -1,43 +1,47 @@
+import { getBaseDestination } from '../storage/storage';
+
 const youtubedl = require('youtube-dl');
 const path = require('path');
 const fs = require('fs');
 const { remote } = require('electron');
 
-const DESTINATION_FOLDER = path.join(remote.app.getPath('videos'), 'YouTube');
-let destinationFilePath;
+let baseDestination;
+let filePath;
 
 export var init = function () {
-  if (! fs.existsSync(DESTINATION_FOLDER)) {
-    fs.mkdirSync(DESTINATION_FOLDER);
-  }
+  baseDestination = getBaseDestination();
 };
 
 export var downloadVideo = function (link, onInfo, onError, onEnd) {
+  if (! fs.existsSync(baseDestination)) {
+    fs.mkdirSync(baseDestination);
+  }
+
   const video = youtubedl(
     link,
     ['--format=18'],
-    { cwd: DESTINATION_FOLDER }
+    { cwd: baseDestination }
   );
 
   video.on('info', function (info) {
     onInfo(info);
 
-    const destinationFolder = getDestinationFolder(info);
-    if (! fs.existsSync(destinationFolder)) {
-      fs.mkdirSync(destinationFolder);
+    const destination = getDestination(info);
+    if (! fs.existsSync(destination)) {
+      fs.mkdirSync(destination);
     }
 
-    destinationFilePath = path.join(destinationFolder, info._filename);
-    video.pipe(fs.createWriteStream(destinationFilePath));
+    filePath = path.join(destination, info._filename);
+    video.pipe(fs.createWriteStream(filePath));
   });
 
   video.on('error', onError);
   video.on('end', () => {
     console.log('finished downloading!');
-    onEnd(destinationFilePath);
+    onEnd(filePath);
   });
 };
 
-function getDestinationFolder(info) {
-  return path.join(DESTINATION_FOLDER, info.uploader);
+function getDestination(info) {
+  return path.join(baseDestination, info.uploader);
 }

@@ -2,7 +2,7 @@ import { downloadVideo } from '../downloader/downloader';
 
 const path = require('path');
 const prettyBytes = require('pretty-bytes');
-const { remote, shell } = require('electron');
+const { shell } = require('electron');
 
 const STATUS = {
   DOWNLOADING: 'Downloading...',
@@ -11,8 +11,6 @@ const STATUS = {
   ERROR: 'Error',
   DONE: 'Done',
 };
-
-const DESTINATION_FOLDER = path.join(remote.app.getPath('videos'), 'YouTube');
 
 let $datatable;
 let $tableParent;
