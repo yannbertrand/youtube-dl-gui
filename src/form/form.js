@@ -25,13 +25,18 @@ export var init = function () {
         function onError(error) {
             console.log(error);
             $inputGroup.addClass('has-danger');
+            resetSubmitButton();
         }
 
         function onSuccess() {
-            $input.val('').focus();
-            $icon.removeClass('fa-spin');
-            $submit.prop('disabled', false);
+            $input.val('');
             $body.removeClass('center-vertical');
+            resetSubmitButton();
+        }
+
+        function resetSubmitButton() {
+            $icon.removeClass('fa-spin').focus();
+            $submit.prop('disabled', false);
         }
     });
 };
