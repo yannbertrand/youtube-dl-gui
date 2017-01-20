@@ -32,6 +32,16 @@ export var init = function () {
 
     $tableParent.hide();
 
+    const $datatable = $table.DataTable({
+        info: false,
+        paging: false,
+        scrollCollapse: true,
+        scrollY: '10vw',
+    });
+
+    $('.dataTables_scrollBody').css('max-height', 200);
+
+
     $input.on('input', function () {
         if ($inputGroup.hasClass('has-danger')) {
             $inputGroup.removeClass('has-danger');
@@ -42,7 +52,7 @@ export var init = function () {
         $icon.addClass('fa-spin');
         $submit.prop('disabled', true);
 
-        downloadVideoAndAddRowToTable($input.val(), function (error) {
+        downloadVideoAndAddRowToTable($input.val(), $datatable, function (error) {
             if (error) {
                 console.log(error);
                 $inputGroup.addClass('has-danger');
@@ -61,23 +71,7 @@ export var init = function () {
     });
 };
 
-function downloadVideoAndAddRowToTable(link, callback) {
-    const $table = $('table');
-
-    let $datatable;
-    if ($.fn.dataTable.isDataTable('table')) {
-        $datatable = $table.DataTable();
-    } else {
-        $datatable = $table.DataTable({
-            info: false,
-            paging: false,
-            scrollCollapse: true,
-            scrollY: '10vw',
-        });
-
-        $('.dataTables_scrollBody').css('max-height', 200);
-    }
-
+function downloadVideoAndAddRowToTable(link, $datatable, callback) {
     const video = youtubedl(link,
       // Optional arguments passed to youtube-dl.
       ['--format=18'],
