@@ -4,10 +4,13 @@ const fs = require('fs');
 const { remote } = require('electron');
 
 const DESTINATION_FOLDER = path.join(remote.app.getPath('videos'), 'YouTube');
+let destinationFilePath;
 
-if (! fs.existsSync(DESTINATION_FOLDER)) {
-  fs.mkdirSync(DESTINATION_FOLDER);
-}
+export var init = function () {
+  if (! fs.existsSync(DESTINATION_FOLDER)) {
+    fs.mkdirSync(DESTINATION_FOLDER);
+  }
+};
 
 export var downloadVideo = function (link, onInfo, onError, onEnd) {
   const video = youtubedl(
@@ -24,12 +27,15 @@ export var downloadVideo = function (link, onInfo, onError, onEnd) {
       fs.mkdirSync(destinationFolder);
     }
 
-    const destinationFilePath = path.join(destinationFolder, info._filename);
+    destinationFilePath = path.join(destinationFolder, info._filename);
     video.pipe(fs.createWriteStream(destinationFilePath));
   });
 
   video.on('error', onError);
-  video.on('end', onEnd);
+  video.on('end', () => {
+    console.log('finished downloading!');
+    onEnd(destinationFilePath);
+  });
 };
 
 function getDestinationFolder(info) {
