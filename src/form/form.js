@@ -1,8 +1,6 @@
-const youtubedl = require('youtube-dl');
+import { downloadVideo } from '../downloader/downloader';
 const prettyBytes = require('pretty-bytes');
-const { remote, shell } = require('electron');
-const path = require('path');
-const fs = require('fs');
+const { shell } = require('electron');
 
 const STATUS = {
     DOWNLOADING: 'Downloading...',
@@ -12,11 +10,6 @@ const STATUS = {
     DONE: 'Done',
 };
 
-const DESTINATION_FOLDER = path.join(remote.app.getPath('videos'), 'YouTube');
-
-if (! fs.existsSync(DESTINATION_FOLDER)) {
-  fs.mkdirSync(DESTINATION_FOLDER);
-}
 
 const videos = [];
 
@@ -40,7 +33,6 @@ export var init = function () {
     });
 
     $('.dataTables_scrollBody').css('max-height', 200);
-
 
     $input.on('input', function () {
         if ($inputGroup.hasClass('has-danger')) {
@@ -72,41 +64,24 @@ export var init = function () {
 };
 
 function downloadVideoAndAddRowToTable(link, $datatable, callback) {
-    const video = youtubedl(link,
-      // Optional arguments passed to youtube-dl.
-      ['--format=18'],
-      // Additional options can be given for calling `child_process.execFile()`.
-      { cwd: DESTINATION_FOLDER });
+    let info;
+    let $tr;
 
-    // Will be called when the download starts.
-    video.on('info', function(info) {
-      const destination = path.join(DESTINATION_FOLDER, info.uploader, info._filename);
-      if (! fs.existsSync(destination)) {
-        fs.mkdirSync(destination);
-      }
+    downloadVideo(link, onInfo, callback, onEnd);
 
-      video.pipe(fs.createWriteStream(destination));
-      console.log(info);
-      const $tr = $(videoToHTML(info));
+    function onInfo(_info) {
+      info = _info;
+      $tr = $(videoToHTML(info));
 
       $datatable.row.add($tr).draw(false);
 
       callback();
+    }
 
-      video.on('end', function() {
-        videoEnd($tr, info);
-        console.log('finished downloading!');
-      });
-    });
-
-    video.on('error', callback);
-
-    // Will be called if download was already completed and there is nothing more to download.
-    video.on('complete', function complete(info) {
-      console.log('filename: ' + info._filename + ' already downloaded.');
-    });
-
-
+    function onEnd() {
+      videoEnd($tr, info);
+      console.log('finished downloading!');
+    }
 }
 
 function videoToHTML(video) {
