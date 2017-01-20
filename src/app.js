@@ -8,6 +8,7 @@ import jetpack from 'fs-jetpack'; // module loaded from npm
 import { init as initForm } from './form/form';
 import { init as initTable } from './table/table';
 import { init as initDownloader } from './downloader/downloader';
+import { init as initStorage } from './storage/storage';
 import env from './env';
 
 global.Tether = require('tether');
@@ -28,6 +29,7 @@ var appDir = jetpack.cwd(app.getAppPath());
 console.log('The author of this app is:', appDir.read('package.json', 'json').author);
 
 document.addEventListener('DOMContentLoaded', function () {
+    initStorage();
     initForm();
     initTable();
     initDownloader();
