@@ -29,7 +29,7 @@ export var downloadVideo = function (link, onInfo, onError, onEnd) {
       fs.mkdirSync(destination);
     }
 
-    filePath = path.join(destination, info._filename);
+    filePath = getFilePath(destination, info);
     video.pipe(fs.createWriteStream(filePath));
   });
 
@@ -41,5 +41,17 @@ export var downloadVideo = function (link, onInfo, onError, onEnd) {
 };
 
 function getDestination(baseDestination, info) {
-  return path.join(baseDestination, info.uploader);
+  if (info.playlist === null || info.playlist === 'NA') {
+    return path.join(baseDestination, info.uploader);
+  }
+
+  return path.join(baseDestination, info.uploader, info.playlist);
+}
+
+function getFilePath(destination, info) {
+  if (info.playlist_index === null || info.playlist_index === 'NA') {
+    return path.join(destination, info._filename);
+  }
+
+  return path.join(destination, info.playlist_index + ' - ' + info._filename);
 }
