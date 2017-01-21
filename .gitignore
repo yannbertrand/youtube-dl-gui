@@ -11,6 +11,8 @@ Thumbs.db
 /app/env.json
 /app/**/*.map
 
+/app/preferences.js
+
 /dist
 
 /coverage
