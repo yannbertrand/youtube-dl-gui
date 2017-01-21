@@ -4,14 +4,6 @@ const path = require('path');
 const prettyBytes = require('pretty-bytes');
 const { shell } = require('electron');
 
-const STATUS = {
-  DOWNLOADING: 'Downloading...',
-  PAUSED: 'Paused',
-  STOPPED: 'Stopped',
-  ERROR: 'Error',
-  DONE: 'Done',
-};
-
 let $datatable;
 let $tableParent;
 
@@ -31,16 +23,22 @@ export var init = function () {
 
 export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAddedToTable) {
   let $tr;
+  let $status;
 
-  downloadVideo(link, onStartDownloading, onError, onEnd);
+  downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
 
   function onStartDownloading(info) {
     $tr = $(videoToHTML(info));
+    $status = $tr.find('td.status');
 
     $datatable.row.add($tr).draw(false);
     $tableParent.show();
 
     onVideoAddedToTable();
+  }
+
+  function onProgress(percent) {
+    $status.text(Math.round(percent) + '%');
   }
 
   function onEnd(destinationFilePath) {
@@ -54,7 +52,7 @@ function videoToHTML(video) {
             '<td>' + video.uploader + '</td>' +
             '<td class="right">' + video.duration + '</td>' +
             '<td class="right">' + prettyBytes(video.size) + '</td>' +
-            '<td class="status">' + STATUS.DOWNLOADING + '</td>' +
+            '<td class="status right">0%</td>' +
             '<td class="actions">' +
                 '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm">' +
                     '<span class="fa fa-trash"></span>' +
@@ -64,8 +62,6 @@ function videoToHTML(video) {
 }
 
 function videoEnd($tr, destinationFilePath) {
-  $tr.find('td.status').text(STATUS.DONE);
-
   const $button = $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
       '<span class="fa fa-folder-open"></span>' +
   '</button>').on('click', () => shell.showItemInFolder(destinationFilePath));
