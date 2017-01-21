@@ -5,14 +5,12 @@ const path = require('path');
 const fs = require('fs');
 const { remote } = require('electron');
 
-let baseDestination;
-let filePath;
-
-export var init = function () {
-  baseDestination = getBaseDestination();
-};
+export var init = function () { };
 
 export var downloadVideo = function (link, onInfo, onError, onEnd) {
+  let filePath;
+
+  const baseDestination = getBaseDestination();
   if (! fs.existsSync(baseDestination)) {
     fs.mkdirSync(baseDestination);
   }
@@ -26,7 +24,7 @@ export var downloadVideo = function (link, onInfo, onError, onEnd) {
   video.on('info', function (info) {
     onInfo(info);
 
-    const destination = getDestination(info);
+    const destination = getDestination(baseDestination, info);
     if (! fs.existsSync(destination)) {
       fs.mkdirSync(destination);
     }
@@ -42,6 +40,6 @@ export var downloadVideo = function (link, onInfo, onError, onEnd) {
   });
 };
 
-function getDestination(info) {
+function getDestination(baseDestination, info) {
   return path.join(baseDestination, info.uploader);
 }
