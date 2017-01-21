@@ -24,8 +24,6 @@ export var init = function () {
   $datatable = $('table').DataTable({
     info: false,
     paging: false,
-    scrollCollapse: true,
-    scrollY: '10vw',
   });
 
   $('.dataTables_scrollBody').css('max-height', 200);
