@@ -1,5 +1,7 @@
 import { downloadVideoAndAddRowToTable } from '../table/table';
 
+const isYouTubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//;
+
 export var init = function () {
     const $body = $('body');
     const $form = $body.find('form');
@@ -15,12 +17,17 @@ export var init = function () {
     });
 
     $form.on('submit', function (event) {
+        event.preventDefault();
+
+        const link = $input.val();
+        if (! isYouTubeRegex.test(link)) {
+            return onError('Not a YouTube link');
+        }
+
         $icon.addClass('fa-spin');
         $submit.prop('disabled', true);
 
-        downloadVideoAndAddRowToTable($input.val(), onError, onSuccess);
-
-        event.preventDefault();
+        downloadVideoAndAddRowToTable(link, onError, onSuccess);
 
         function onError(error) {
             console.log(error);
