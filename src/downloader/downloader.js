@@ -7,7 +7,7 @@ const { remote } = require('electron');
 
 export var init = function () { };
 
-export var downloadVideo = function (link, onInfo, onError, onEnd) {
+export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
   let filePath;
 
   const baseDestination = getBaseDestination();
@@ -21,8 +21,11 @@ export var downloadVideo = function (link, onInfo, onError, onEnd) {
     { cwd: baseDestination }
   );
 
+  let size = 0;
   video.on('info', function (info) {
     onInfo(info);
+
+    size = info.size;
 
     const destination = getDestination(baseDestination, info);
     if (! fs.existsSync(destination)) {
@@ -31,6 +34,15 @@ export var downloadVideo = function (link, onInfo, onError, onEnd) {
 
     filePath = getFilePath(destination, info);
     video.pipe(fs.createWriteStream(filePath));
+  });
+
+  let position = 0;
+  video.on('data', function (chunk) {
+    position += chunk.length;
+
+    if (size > 0) {
+        onProgress((position / size * 100).toFixed(2));
+    }
   });
 
   video.on('error', onError);
