@@ -28,3 +28,7 @@ export var get = function (key) {
 export var getBaseDestination = function () {
   return config.get(KEYS.BASE_DESTINATION);
 }
+
+export var setBaseDestination = function (baseDestination) {
+  config.set(KEYS.BASE_DESTINATION, baseDestination);
+}
