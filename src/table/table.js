@@ -16,6 +16,7 @@ export var init = function () {
   $datatable = $('table').DataTable({
     info: false,
     paging: false,
+    autoWidth: false,
   });
 
   $('.dataTables_scrollBody').css('max-height', 200);
@@ -39,6 +40,8 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
 
   function onProgress(percent) {
     $status.text(Math.round(percent) + '%');
+
+    $tr.css('background-size', percent + '% 1px');
   }
 
   function onEnd(destinationFilePath) {
@@ -48,12 +51,12 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
 
 function videoToHTML(video) {
     return '<tr>' +
-            '<td>' + video.title + '</td>' +
-            '<td>' + video.uploader + '</td>' +
-            '<td class="right">' + video.duration + '</td>' +
-            '<td class="right">' + prettyBytes(video.size) + '</td>' +
-            '<td class="status right">0%</td>' +
-            '<td class="actions">' +
+            '<td class="col-md-5 col-xs-2">' + video.title + '</td>' +
+            '<td class="col-md-3 col-xs-2">' + video.uploader + '</td>' +
+            '<td class="col-md-1 col-xs-2 right">' + video.duration + '</td>' +
+            '<td class="col-md-1 col-xs-2 right">' + prettyBytes(video.size) + '</td>' +
+            '<td class="col-md-1 col-xs-2 status right">0%</td>' +
+            '<td class="col-md-1 col-xs-2 actions">' +
                 '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm">' +
                     '<span class="fa fa-trash"></span>' +
                 '</button>' +
@@ -62,6 +65,8 @@ function videoToHTML(video) {
 }
 
 function videoEnd($tr, destinationFilePath) {
+  $tr.addClass('done');
+
   const $button = $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
       '<span class="fa fa-folder-open"></span>' +
   '</button>').on('click', () => shell.showItemInFolder(destinationFilePath));
