@@ -1,7 +1,6 @@
 'use strict';
 
 var gulp       = require('gulp');
-// var less    = require('gulp-less');
 var sass       = require('gulp-sass');
 var sourcemaps = require('gulp-sourcemaps');
 var watch      = require('gulp-watch');
@@ -34,7 +33,7 @@ gulp.task('sass', function () {
                 'node_modules/bootswatch-sass/',
             ]
         }).on('error', sass.logError))
-        .pipe(sourcemaps.write())
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(destDir.path('stylesheets')));
 });
 
@@ -56,12 +55,9 @@ gulp.task('watch', function () {
     watch('src/**/*.js', batch(function (events, done) {
         gulp.start('bundle', beepOnError(done));
     }));
-    // watch('src/**/*.less', batch(function (events, done) {
-    //     gulp.start('less', beepOnError(done));
-    // }));
     watch('src/**/*.sass', batch(function (events, done) {
         gulp.start('sass', beepOnError(done));
     }));
 });
 
-gulp.task('build', ['bundle', /*'less',*/ 'sass', 'environment']);
+gulp.task('build', ['bundle', 'sass', 'environment']);
