@@ -11,7 +11,7 @@ import env from './env';
 
 global.Tether = require('tether');
 global.jQuery = global.$ = require('jquery');
-require('bootstrap');
+require('bootstrap-sass');
 
 require('datatables.net')();
 require('datatables.net-bs')();

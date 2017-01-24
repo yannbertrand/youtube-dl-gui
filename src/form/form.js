@@ -11,8 +11,8 @@ export var init = function () {
     const $icon = $submit.find('span');
 
     $input.on('input', function () {
-        if ($inputGroup.hasClass('has-danger')) {
-            $inputGroup.removeClass('has-danger');
+        if ($inputGroup.hasClass('has-error')) {
+            $inputGroup.removeClass('has-error');
         }
     });
 
@@ -31,7 +31,7 @@ export var init = function () {
 
         function onError(error) {
             console.log(error);
-            $inputGroup.addClass('has-danger');
+            $inputGroup.addClass('has-error');
             resetSubmitButton();
         }
 
