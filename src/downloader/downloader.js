@@ -18,7 +18,7 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
   }
 
   const proxy = getProxy();
-  if(!!proxy) {
+  if(typeof proxy !== 'undefined') {
     options.push('--proxy=' + proxy);
   }
 
