@@ -17,6 +17,10 @@ export var init = function () {
   }
 };
 
+export var clear = function () {
+  config.clear();
+}
+
 export var save = function (key, value) {
   config.set(key, value);
 };
