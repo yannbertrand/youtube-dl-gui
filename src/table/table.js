@@ -1,6 +1,8 @@
 import { downloadVideo } from '../downloader/downloader';
+import { getDownloads, removeVideoFromDownloads } from '../storage/storage';
 
 const path = require('path');
+const fs = require('fs');
 const prettyBytes = require('pretty-bytes');
 const { shell } = require('electron');
 
@@ -9,7 +11,6 @@ let $tableParent;
 
 export var init = function () {
   const $table = $('table');
-
   $tableParent = $table.parent();
   $tableParent.hide();
 
@@ -18,7 +19,45 @@ export var init = function () {
     paging: false,
     autoWidth: false,
   });
+
+  const videos = getVideosFromStorage();
+  if (videos.length == 0) {
+    return;
+  }
+
+  $('body').removeClass('center-vertical');
+
+  addStoredVideosToTable(videos);
+
+  $tableParent.show();
 };
+
+function getVideosFromStorage() {
+  const downloads = getDownloads();
+  const videos = [];
+  for (const id in downloads) {
+    const info = downloads[id];
+    if (! fs.existsSync(info.path)) {
+      removeVideoFromDownloads(id);
+    }
+
+    videos.push(info);
+  }
+
+  return videos;
+}
+
+function addStoredVideosToTable(videos) {
+  for (const info of videos) {
+    const fileSize = fs.statSync(info.path).size;
+    const percentage = (fileSize / info.size) * 100.0;
+
+    const $tr = $(videoToHTML(info, percentage));
+    moveProgressIndicator($tr, percentage);
+
+    $datatable.row.add($tr).draw(false);
+  }
+}
 
 export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAddedToTable) {
   let $tr;
