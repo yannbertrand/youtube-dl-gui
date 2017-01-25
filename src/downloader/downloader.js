@@ -9,14 +9,13 @@ export var init = function () { };
 
 export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
   let filePath;
-  let options = ['--format=18'];
-
 
   const baseDestination = getBaseDestination();
   if (! fs.existsSync(baseDestination)) {
     fs.mkdirSync(baseDestination);
   }
 
+  const options = ['--format=18'];
   const proxy = getProxy();
   if(typeof proxy !== 'undefined') {
     options.push('--proxy=' + proxy);
