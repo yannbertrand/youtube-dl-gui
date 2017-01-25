@@ -15,4 +15,4 @@ node --version
 npm --version
 
 yarn install
-npm test & npm run e2e
+npm test; npm run e2e
