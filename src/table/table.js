@@ -87,7 +87,7 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
 
 function videoToHTML(video, percentage = 0) {
     const trClass = (percentage > 0) ? 'paused' : '';
-    let actions = (percentage > 0) ? getContinueButton() : '';
+    let actions = (percentage > 0) ? getResumeButton() : '';
     actions += getCancelAndDeleteButton();
 
     return '<tr class="' + trClass + '">' +
@@ -100,8 +100,8 @@ function videoToHTML(video, percentage = 0) {
         '</tr>';
 }
 
-function getContinueButton() {
-    return '<button title="Continue download" class="btn btn-primary btn-sm" disabled>' +
+function getResumeButton() {
+    return '<button title="Resume download" class="btn btn-primary btn-sm" disabled>' +
                 '<span class="fa fa-play"></span>' +
             '</button>';
 }
