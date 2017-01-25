@@ -18,8 +18,6 @@ export var init = function () {
     paging: false,
     autoWidth: false,
   });
-
-  $('.dataTables_scrollBody').css('max-height', 200);
 };
 
 export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAddedToTable) {
