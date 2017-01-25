@@ -24,13 +24,11 @@ export var init = function () {
 
 export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAddedToTable) {
   let $tr;
-  let $status;
 
   downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
 
   function onStartDownloading(info) {
     $tr = $(videoToHTML(info));
-    $status = $tr.find('td.status');
 
     $datatable.row.add($tr).draw(false);
     $tableParent.show();
@@ -39,7 +37,7 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
   }
 
   function onProgress(percent) {
-    $status.text(Math.round(percent) + '%');
+    $tr.find('td.status').text(Math.round(percent) + '%');
 
     $tr.css('background-size', percent + '% 1px');
   }
