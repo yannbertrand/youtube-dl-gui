@@ -65,3 +65,16 @@ export var addVideoInDownloads = function (id, info) {
 export var removeVideoFromDownloads = function (id) {
   config.delete(KEYS.DOWNLOADS + '.' + id);
 }
+
+export var filterVideoInfoToStore = function (info, filePath) {
+  return {
+    title: info.title,
+    uploader: info.uploader,
+    duration: info.duration,
+    size: info.size,
+    formatId: info.format_id,
+    uploadedDate: info.uploaded_date,
+    path: filePath,
+    launchedAt: new Date(),
+  };
+}
