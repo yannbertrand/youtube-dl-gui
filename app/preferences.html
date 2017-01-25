@@ -18,17 +18,25 @@
     <div class="container">
         <form>
             <div class="form-group row">
+
                 <label for="base-destination" class="col-md-4 col-lg-3 col-form-label">File download location</label>
                 <div class="col-md-8 col-lg-9">
-                <div class="input-group">
-                    <input id="base-destination" class="form-control" type="text" readonly>
-                    <span class="input-group-btn">
-                        <button type="button" title="Select another folder" class="btn btn-primary">
-                            select
-                        </button>
-                    </span>
+                    <div class="input-group">
+                        <input id="base-destination" class="form-control" type="text" readonly>
+                        <span class="input-group-btn">
+                            <button type="button" title="Select another folder" class="btn btn-primary">
+                                <i class="fa fa-folder"></i>
+                                select
+                            </button>
+                        </span>
                     </div>
                 </div>
+
+                <label for="proxy" class="col-md-4 col-lg-3 col-form-label">Proxy settings</label>
+                <div class="col-md-8 col-lg-9">
+                    <input id="proxy" class="form-control" type="text" placeholder="https://bill:gates@proxy.microsoft.com:3128">
+                </div>
+
             </div>
         </form>
     </div>

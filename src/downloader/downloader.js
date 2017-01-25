@@ -1,4 +1,4 @@
-import { getBaseDestination, addVideoInDownloads, filterVideoInfoToStore } from '../storage/storage';
+import { getBaseDestination, getProxy, addVideoInDownloads, filterVideoInfoToStore } from '../storage/storage';
 
 const youtubedl = require('youtube-dl');
 const path = require('path');
@@ -15,9 +15,15 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
     fs.mkdirSync(baseDestination);
   }
 
+  const options = ['--format=18'];
+  const proxy = getProxy();
+  if(typeof proxy !== 'undefined') {
+    options.push('--proxy=' + proxy);
+  }
+
   const video = youtubedl(
     link,
-    ['--format=18'],
+    options,
     { cwd: baseDestination }
   );
 
