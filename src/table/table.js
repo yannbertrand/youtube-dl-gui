@@ -80,8 +80,6 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
   }
 
   function onEnd(destinationFilePath) {
-    $tr.addClass('done');
-
     const $button = getShowItemInFolderButton(destinationFilePath);
     $tr.find('td.actions').html($button);
   }
@@ -121,5 +119,9 @@ function getShowItemInFolderButton(destinationFilePath) {
 }
 
 function moveProgressIndicator($tr, percentage) {
+  if (percentage === 100) {
+    $tr.addClass('done');
+  }
+
   $tr.css('background-size', percentage + '% 1px');
 }
