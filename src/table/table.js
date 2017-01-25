@@ -37,11 +37,12 @@ function getVideosFromStorage() {
   const videos = [];
   for (const id in downloads) {
     const info = downloads[id];
-    if (! fs.existsSync(info.path)) {
+    try {
+      fs.statSync(info.path);
+      videos.push(info);
+    } catch (error) {
       removeVideoFromDownloads(id);
     }
-
-    videos.push(info);
   }
 
   return videos;
