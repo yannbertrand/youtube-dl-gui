@@ -1,4 +1,4 @@
-import { getBaseDestination } from '../storage/storage';
+import { getBaseDestination, addVideoInDownloads, filterVideoInfoToStore } from '../storage/storage';
 
 const youtubedl = require('youtube-dl');
 const path = require('path');
@@ -34,6 +34,8 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
 
     filePath = getFilePath(destination, info);
     video.pipe(fs.createWriteStream(filePath));
+
+    addVideoInDownloads(info.id, filterVideoInfoToStore(info, filePath));
   });
 
   let position = 0;
