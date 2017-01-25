@@ -43,7 +43,10 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
   }
 
   function onEnd(destinationFilePath) {
-    videoEnd($tr, destinationFilePath);
+    $tr.addClass('done');
+
+    const $button = getShowItemInFolderButton(destinationFilePath);
+    $tr.find('td.actions').html($button);
   }
 };
 
@@ -62,11 +65,8 @@ function videoToHTML(video) {
         '</tr>';
 }
 
-function videoEnd($tr, destinationFilePath) {
-  $tr.addClass('done');
-
-  const $button = $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
-      '<span class="fa fa-folder-open"></span>' +
-  '</button>').on('click', () => shell.showItemInFolder(destinationFilePath));
-  $tr.find('td.actions').html($button);
+function getShowItemInFolderButton(destinationFilePath) {
+    return $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
+          '<span class="fa fa-folder-open"></span>' +
+      '</button>').on('click', () => shell.showItemInFolder(destinationFilePath))
 }
