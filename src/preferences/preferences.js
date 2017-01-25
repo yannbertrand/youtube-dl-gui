@@ -1,4 +1,4 @@
-import { getBaseDestination, setBaseDestination } from '../storage/storage';
+import { getBaseDestination, setBaseDestination, getProxy, setProxy } from '../storage/storage';
 
 const { remote } = require('electron');
 
@@ -8,6 +8,9 @@ export var init = function () {
 
   refreshBaseDestination();
   $('input#base-destination').parent().find('button').on('click', selectBaseDestination);
+
+  refreshProxy();
+  $('input#proxy').on('input', updateProxy);
 };
 
 function selectBaseDestination() {
@@ -24,4 +27,13 @@ function selectBaseDestination() {
 
 function refreshBaseDestination() {
   $('input#base-destination').val(getBaseDestination());
+}
+
+
+function updateProxy() {
+  setProxy($('input#proxy').val());
+}
+
+function refreshProxy() {
+  $('input#proxy').val(getProxy());
 }
