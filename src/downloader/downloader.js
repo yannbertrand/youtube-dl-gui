@@ -1,4 +1,4 @@
-import { getBaseDestination, getProxy } from '../storage/storage';
+import { getBaseDestination, getProxy, addVideoInDownloads, filterVideoInfoToStore } from '../storage/storage';
 
 const youtubedl = require('youtube-dl');
 const path = require('path');
@@ -41,6 +41,8 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
 
     filePath = getFilePath(destination, info);
     video.pipe(fs.createWriteStream(filePath));
+
+    addVideoInDownloads(info.id, filterVideoInfoToStore(info, filePath));
   });
 
   let position = 0;
@@ -48,7 +50,7 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
     position += chunk.length;
 
     if (size > 0) {
-        onProgress((position / size * 100).toFixed(2));
+        onProgress((position / size) * 100);
     }
   });
 

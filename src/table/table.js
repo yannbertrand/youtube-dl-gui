@@ -1,6 +1,8 @@
 import { downloadVideo } from '../downloader/downloader';
+import { getDownloads, removeVideoFromDownloads } from '../storage/storage';
 
 const path = require('path');
+const fs = require('fs');
 const prettyBytes = require('pretty-bytes');
 const { shell } = require('electron');
 
@@ -9,7 +11,6 @@ let $tableParent;
 
 export var init = function () {
   const $table = $('table');
-
   $tableParent = $table.parent();
   $tableParent.hide();
 
@@ -19,18 +20,53 @@ export var init = function () {
     autoWidth: false,
   });
 
-  $('.dataTables_scrollBody').css('max-height', 200);
+  const videos = getVideosFromStorage();
+  if (videos.length == 0) {
+    return;
+  }
+
+  $('body').removeClass('center-vertical');
+
+  addStoredVideosToTable(videos);
+
+  $tableParent.show();
 };
+
+function getVideosFromStorage() {
+  const downloads = getDownloads();
+  const videos = [];
+  for (const id in downloads) {
+    const info = downloads[id];
+    try {
+      fs.statSync(info.path);
+      videos.push(info);
+    } catch (error) {
+      removeVideoFromDownloads(id);
+    }
+  }
+
+  return videos;
+}
+
+function addStoredVideosToTable(videos) {
+  for (const info of videos) {
+    const fileSize = fs.statSync(info.path).size;
+    const percentage = (fileSize / info.size) * 100.0;
+
+    const $tr = $(videoToHTML(info, percentage));
+    moveProgressIndicator($tr, percentage);
+
+    $datatable.row.add($tr).draw(false);
+  }
+}
 
 export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAddedToTable) {
   let $tr;
-  let $status;
 
   downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
 
   function onStartDownloading(info) {
     $tr = $(videoToHTML(info));
-    $status = $tr.find('td.status');
 
     $datatable.row.add($tr).draw(false);
     $tableParent.show();
@@ -38,37 +74,54 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
     onVideoAddedToTable();
   }
 
-  function onProgress(percent) {
-    $status.text(Math.round(percent) + '%');
-
-    $tr.css('background-size', percent + '% 1px');
+  function onProgress(percentage) {
+    $tr.find('td.status').text(Math.round(percentage) + '%');
+    moveProgressIndicator($tr, percentage);
   }
 
   function onEnd(destinationFilePath) {
-    videoEnd($tr, destinationFilePath);
+    const $button = getShowItemInFolderButton(destinationFilePath);
+    $tr.find('td.actions').html($button);
   }
 };
 
-function videoToHTML(video) {
-    return '<tr>' +
+function videoToHTML(video, percentage = 0) {
+    const trClass = (percentage > 0) ? 'paused' : '';
+    let actions = (percentage > 0) ? getResumeButton() : '';
+    actions += getCancelAndDeleteButton();
+
+    return '<tr class="' + trClass + '">' +
             '<td class="col-md-5 col-xs-2">' + video.title + '</td>' +
             '<td class="col-md-3 col-xs-2">' + video.uploader + '</td>' +
             '<td class="col-md-1 col-xs-2 right">' + video.duration + '</td>' +
             '<td class="col-md-1 col-xs-2 right">' + prettyBytes(video.size) + '</td>' +
-            '<td class="col-md-1 col-xs-2 status right">0%</td>' +
-            '<td class="col-md-1 col-xs-2 actions">' +
-                '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm">' +
-                    '<span class="fa fa-trash"></span>' +
-                '</button>' +
-            '</td>' +
+            '<td class="col-md-1 col-xs-2 status right">' + Math.round(percentage) + '%</td>' +
+            '<td class="col-md-1 col-xs-2 actions">' + actions + '</td>' +
         '</tr>';
 }
 
-function videoEnd($tr, destinationFilePath) {
-  $tr.addClass('done');
+function getResumeButton() {
+    return '<button title="Resume download" class="btn btn-primary btn-sm" disabled>' +
+                '<span class="fa fa-play"></span>' +
+            '</button>';
+}
 
-  const $button = $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
-      '<span class="fa fa-folder-open"></span>' +
-  '</button>').on('click', () => shell.showItemInFolder(destinationFilePath));
-  $tr.find('td.actions').html($button);
+function getCancelAndDeleteButton() {
+    return '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm" disabled>' +
+                '<span class="fa fa-trash"></span>' +
+            '</button>';
+}
+
+function getShowItemInFolderButton(destinationFilePath) {
+    return $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
+          '<span class="fa fa-folder-open"></span>' +
+      '</button>').on('click', () => shell.showItemInFolder(destinationFilePath))
+}
+
+function moveProgressIndicator($tr, percentage) {
+  if (percentage === 100) {
+    $tr.addClass('done');
+  }
+
+  $tr.css('background-size', percentage + '% 1px');
 }
