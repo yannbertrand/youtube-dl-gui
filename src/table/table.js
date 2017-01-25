@@ -34,10 +34,9 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
     onVideoAddedToTable();
   }
 
-  function onProgress(percent) {
-    $tr.find('td.status').text(Math.round(percent) + '%');
-
-    $tr.css('background-size', percent + '% 1px');
+  function onProgress(percentage) {
+    $tr.find('td.status').text(Math.round(percentage) + '%');
+    moveProgressIndicator($tr, percentage);
   }
 
   function onEnd(destinationFilePath) {
@@ -79,4 +78,8 @@ function getShowItemInFolderButton(destinationFilePath) {
     return $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
           '<span class="fa fa-folder-open"></span>' +
       '</button>').on('click', () => shell.showItemInFolder(destinationFilePath))
+}
+
+function moveProgressIndicator($tr, percentage) {
+  $tr.css('background-size', percentage + '% 1px');
 }
