@@ -48,19 +48,31 @@ export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAdded
   }
 };
 
-function videoToHTML(video) {
-    return '<tr>' +
+function videoToHTML(video, percentage = 0) {
+    const trClass = (percentage > 0) ? 'paused' : '';
+    let actions = (percentage > 0) ? getContinueButton() : '';
+    actions += getCancelAndDeleteButton();
+
+    return '<tr class="' + trClass + '">' +
             '<td class="col-md-5 col-xs-2">' + video.title + '</td>' +
             '<td class="col-md-3 col-xs-2">' + video.uploader + '</td>' +
             '<td class="col-md-1 col-xs-2 right">' + video.duration + '</td>' +
             '<td class="col-md-1 col-xs-2 right">' + prettyBytes(video.size) + '</td>' +
-            '<td class="col-md-1 col-xs-2 status right">0%</td>' +
-            '<td class="col-md-1 col-xs-2 actions">' +
-                '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm">' +
-                    '<span class="fa fa-trash"></span>' +
-                '</button>' +
-            '</td>' +
+            '<td class="col-md-1 col-xs-2 status right">' + Math.round(percentage) + '%</td>' +
+            '<td class="col-md-1 col-xs-2 actions">' + actions + '</td>' +
         '</tr>';
+}
+
+function getContinueButton() {
+    return '<button title="Continue download" class="btn btn-primary btn-sm" disabled>' +
+                '<span class="fa fa-play"></span>' +
+            '</button>';
+}
+
+function getCancelAndDeleteButton() {
+    return '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm" disabled>' +
+                '<span class="fa fa-trash"></span>' +
+            '</button>';
 }
 
 function getShowItemInFolderButton(destinationFilePath) {
