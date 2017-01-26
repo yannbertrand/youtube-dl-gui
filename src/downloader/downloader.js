@@ -15,15 +15,9 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
     fs.mkdirSync(baseDestination);
   }
 
-  const options = ['--format=18'];
-  const proxy = getProxy();
-  if(typeof proxy !== 'undefined') {
-    options.push('--proxy=' + proxy);
-  }
-
   const video = youtubedl(
     link,
-    options,
+    getOptions(),
     { cwd: baseDestination }
   );
 
@@ -59,6 +53,17 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
     onEnd(filePath);
   });
 };
+
+function getOptions() {
+  const options = ['--format=18'];
+
+  const proxy = getProxy();
+  if(typeof proxy !== 'undefined') {
+    options.push('--proxy=' + proxy);
+  }
+
+  return options;
+}
 
 function getDestination(baseDestination, info) {
   if (info.playlist === null || info.playlist === 'NA') {
