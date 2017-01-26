@@ -60,7 +60,7 @@ function addStoredVideosToTable(videos) {
   }
 }
 
-export var downloadVideoAndAddRowToTable = function (link, onError, onVideoAddedToTable) {
+export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   let $tr;
 
   downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
