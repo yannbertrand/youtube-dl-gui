@@ -69,10 +69,10 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
     $tr = $('table').find('tr#' + id);
 
     if (getVideoDownloadPercentage(videoFromStorage) === 100) {
-      $tr.css('background-color', '#00dd00'); // ToDo animate
+      $tr.css('background-color', 'rgba(0, 255, 0, 0.2)'); // ToDo animate
       onSuccess();
     } else {
-      $tr.css('background-color', '#0000dd'); // ToDo animate
+      $tr.css('background-color', 'rgba(0, 0, 255, 0.2)'); // ToDo animate
       // ToDo resume download
       // downloadVideo(link, onResumeDownloading, onProgress, onError, onEnd, videoFromStorage);
       onSuccess();
