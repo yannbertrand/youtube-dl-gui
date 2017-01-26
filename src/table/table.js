@@ -68,11 +68,11 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   let $actions;
   let filePath;
 
-  if (downloading.has(link)) {
+  const id = url.parse(link, true).query.v;
+  if (downloading.has(id)) {
     return onError('Already downloading');
   }
 
-  const id = url.parse(link, true).query.v;
   const videoFromStorage = getVideoInDownloads(id);
   if (typeof videoFromStorage !== 'undefined') {
     $tr = $('table').find('tr#' + id);
@@ -90,7 +90,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
     downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
   }
 
-  downloading.add(link);
+  downloading.add(id);
 
   function onStartDownloading(info, path) {
     $tr = $(videoToHTML(info));
@@ -112,7 +112,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   function onEnd(destinationFilePath) {
     const $button = getShowItemInFolderButton(destinationFilePath);
     $tr.find('td.actions').html($button);
-    downloading.delete(link);
+    downloading.delete(id);
   }
 };
 
