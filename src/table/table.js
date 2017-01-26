@@ -94,7 +94,7 @@ function videoToHTML(video, percentage = 0) {
     let actions = (percentage > 0) ? getResumeButton() : '';
     actions += getCancelAndDeleteButton();
 
-    return '<tr class="' + trClass + '">' +
+    return '<tr id="' + video.id + '" class="' + trClass + '">' +
             '<td class="col-md-5 col-xs-2">' + video.title + '</td>' +
             '<td class="col-md-3 col-xs-2">' + video.uploader + '</td>' +
             '<td class="col-md-1 col-xs-2 right">' + video.duration + '</td>' +
