@@ -29,8 +29,6 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
 
   let size = 0;
   video.on('info', function (info) {
-    onInfo(info);
-
     size = info.size;
     total = size;
     if (resuming) {
@@ -47,6 +45,7 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
       filePath = getFilePath(destination, info);
     }
 
+    onInfo(info, filePath);
     video.pipe(fs.createWriteStream(filePath, { flags: 'a' }));
 
     if (! resuming) {
