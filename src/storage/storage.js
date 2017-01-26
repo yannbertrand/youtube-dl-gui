@@ -59,7 +59,11 @@ export var getDownloads = function () {
 }
 
 export var hasVideoInDownloads = function (id) {
-  return Object.keys(getDownloads()).indexOf(id) > -1;
+  return config.has(KEYS.DOWNLOADS + '.' + id);
+}
+
+export var getVideoInDownloads = function (id) {
+  return config.get(KEYS.DOWNLOADS + '.' + id);
 }
 
 export var addVideoInDownloads = function (id, info) {
@@ -79,6 +83,7 @@ export var removeVideoFromDownloads = function (id) {
 
 export var filterVideoInfoToStore = function (info, filePath) {
   return {
+    id: info.id,
     title: info.title,
     uploader: info.uploader,
     duration: info.duration,

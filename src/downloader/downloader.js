@@ -7,49 +7,57 @@ const { remote } = require('electron');
 
 export var init = function () { };
 
-export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
-  let filePath;
+export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, filePath = '') {
+  const resuming = filePath !== '';
+
+  let downloaded = 0;
+  let total = 0;
+  if (resuming && fs.existsSync(filePath)) {
+    downloaded = fs.statSync(filePath).size;
+  }
 
   const baseDestination = getBaseDestination();
   if (! fs.existsSync(baseDestination)) {
     fs.mkdirSync(baseDestination);
   }
 
-  const options = ['--format=18'];
-  const proxy = getProxy();
-  if(typeof proxy !== 'undefined') {
-    options.push('--proxy=' + proxy);
-  }
-
   const video = youtubedl(
     link,
-    options,
-    { cwd: baseDestination }
+    getOptions(),
+    { start: downloaded, cwd: baseDestination }
   );
 
   let size = 0;
   video.on('info', function (info) {
-    onInfo(info);
-
     size = info.size;
+    total = size;
+    if (resuming) {
+      console.log('Resuming download');
+      total += downloaded;
+    } else {
+      console.log('Beginning download');
 
-    const destination = getDestination(baseDestination, info);
-    if (! fs.existsSync(destination)) {
-      fs.mkdirSync(destination);
+      const destination = getDestination(baseDestination, info);
+      if (! fs.existsSync(destination)) {
+        fs.mkdirSync(destination);
+      }
+
+      filePath = getFilePath(destination, info);
     }
 
-    filePath = getFilePath(destination, info);
-    video.pipe(fs.createWriteStream(filePath));
+    onInfo(info, filePath);
+    video.pipe(fs.createWriteStream(filePath, { flags: 'a' }));
 
-    addVideoInDownloads(info.id, filterVideoInfoToStore(info, filePath));
+    if (! resuming) {
+      addVideoInDownloads(info.id, filterVideoInfoToStore(info, filePath));
+    }
   });
 
-  let position = 0;
   video.on('data', function (chunk) {
-    position += chunk.length;
+    downloaded += chunk.length;
 
     if (size > 0) {
-        onProgress((position / size) * 100);
+      onProgress((downloaded / total) * 100);
     }
   });
 
@@ -59,6 +67,17 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd) {
     onEnd(filePath);
   });
 };
+
+function getOptions() {
+  const options = ['--format=18'];
+
+  const proxy = getProxy();
+  if(typeof proxy !== 'undefined') {
+    options.push('--proxy=' + proxy);
+  }
+
+  return options;
+}
 
 function getDestination(baseDestination, info) {
   if (info.playlist === null || info.playlist === 'NA') {

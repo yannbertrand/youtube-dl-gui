@@ -1,4 +1,4 @@
-import { downloadVideoAndAddRowToTable } from '../table/table';
+import { downloadVideoAndUpdateTable } from '../table/table';
 
 const isYouTubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//;
 
@@ -27,7 +27,7 @@ export var init = function () {
         $icon.addClass('fa-spin');
         $submit.prop('disabled', true);
 
-        downloadVideoAndAddRowToTable(link, onError, onSuccess);
+        downloadVideoAndUpdateTable(link, onError, onSuccess);
 
         function onError(error) {
             console.log(error);
