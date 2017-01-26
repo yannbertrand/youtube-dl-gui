@@ -50,8 +50,7 @@ function getVideosFromStorage() {
 
 function addStoredVideosToTable(videos) {
   for (const info of videos) {
-    const fileSize = fs.statSync(info.path).size;
-    const percentage = (fileSize / info.size) * 100.0;
+    const percentage = getVideoDownloadPercentage(info);
 
     const $tr = $(videoToHTML(info, percentage));
     moveProgressIndicator($tr, percentage);
@@ -84,6 +83,11 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
     $tr.find('td.actions').html($button);
   }
 };
+
+function getVideoDownloadPercentage(info) {
+  const fileSize = fs.statSync(info.path).size;
+  return (fileSize / info.size) * 100.0;
+}
 
 function videoToHTML(video, percentage = 0) {
     const trClass = (percentage > 0) ? 'paused' : '';
