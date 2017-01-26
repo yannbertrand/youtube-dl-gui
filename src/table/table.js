@@ -1,9 +1,10 @@
 import { downloadVideo } from '../downloader/downloader';
-import { getDownloads, removeVideoFromDownloads } from '../storage/storage';
+import { getDownloads, getVideoInDownloads, removeVideoFromDownloads } from '../storage/storage';
 
 const path = require('path');
 const fs = require('fs');
 const prettyBytes = require('pretty-bytes');
+const url = require('url');
 const { shell } = require('electron');
 
 let $datatable;
@@ -62,7 +63,23 @@ function addStoredVideosToTable(videos) {
 export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   let $tr;
 
-  downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
+  const id = url.parse(link, true).query.v;
+  const videoFromStorage = getVideoInDownloads(id);
+  if (typeof videoFromStorage !== 'undefined') {
+    $tr = $('table').find('tr#' + id);
+
+    if (getVideoDownloadPercentage(videoFromStorage) === 100) {
+      $tr.css('background-color', '#00dd00'); // ToDo animate
+      onSuccess();
+    } else {
+      $tr.css('background-color', '#0000dd'); // ToDo animate
+      // ToDo resume download
+      // downloadVideo(link, onResumeDownloading, onProgress, onError, onEnd, videoFromStorage);
+      onSuccess();
+    }
+  } else {
+    downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
+  }
 
   function onStartDownloading(info) {
     $tr = $(videoToHTML(info));
@@ -70,7 +87,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
     $datatable.row.add($tr).draw(false);
     $tableParent.show();
 
-    onVideoAddedToTable();
+    onSuccess();
   }
 
   function onProgress(percentage) {
