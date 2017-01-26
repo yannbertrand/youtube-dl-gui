@@ -79,6 +79,7 @@ export var removeVideoFromDownloads = function (id) {
 
 export var filterVideoInfoToStore = function (info, filePath) {
   return {
+    id: info.id,
     title: info.title,
     uploader: info.uploader,
     duration: info.duration,
