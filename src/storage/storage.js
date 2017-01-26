@@ -62,6 +62,10 @@ export var hasVideoInDownloads = function (id) {
   return config.has(KEYS.DOWNLOADS + '.' + id);
 }
 
+export var getVideoInDownloads = function (id) {
+  return config.get(KEYS.DOWNLOADS + '.' + id);
+}
+
 export var addVideoInDownloads = function (id, info) {
   const downloads = config.get(KEYS.DOWNLOADS);
   if (hasVideoInDownloads(id)) {
