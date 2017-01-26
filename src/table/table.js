@@ -55,32 +55,47 @@ function addStoredVideosToTable(videos) {
 
     const $tr = $(videoToHTML(info, percentage));
     moveProgressIndicator($tr, percentage);
+    updateActions($tr.find('td.actions'), info.path, percentage, 'https://www.youtube.com/watch?v=' + info.id);
 
     $datatable.row.add($tr).draw(false);
   }
 }
 
+const downloading = new Set();
+
 export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   let $tr;
+  let $actions;
+  let filePath;
+
+  if (downloading.has(link)) {
+    return onError('Already downloading');
+  }
 
   const id = url.parse(link, true).query.v;
   const videoFromStorage = getVideoInDownloads(id);
   if (typeof videoFromStorage !== 'undefined') {
     $tr = $('table').find('tr#' + id);
+    $actions = $tr.find('td.actions');
 
     if (getVideoDownloadPercentage(videoFromStorage) === 100) {
       $tr.css('background-color', 'rgba(0, 255, 0, 0.2)'); // ToDo animate
-      onSuccess();
-    } else {
-      $tr.css('background-color', 'rgba(0, 0, 255, 0.2)'); // ToDo animate
-      downloadVideo(link, onSuccess, onProgress, onError, onEnd, videoFromStorage.path);
+      return onSuccess();
     }
+
+    $tr.css('background-color', 'rgba(0, 0, 255, 0.2)'); // ToDo animate
+    $actions.find('button').prop('disabled', true).find('span').addClass('fa-spin');
+    downloadVideo(link, onSuccess, onProgress, onError, onEnd, videoFromStorage.path);
   } else {
     downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
   }
 
-  function onStartDownloading(info) {
+  downloading.add(link);
+
+  function onStartDownloading(info, path) {
     $tr = $(videoToHTML(info));
+    $actions = $tr.find('td.actions');
+    filePath = path;
 
     $datatable.row.add($tr).draw(false);
     $tableParent.show();
@@ -91,11 +106,13 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   function onProgress(percentage) {
     $tr.find('td.status').text(Math.round(percentage) + '%');
     moveProgressIndicator($tr, percentage);
+    updateActions($actions, filePath, percentage);
   }
 
   function onEnd(destinationFilePath) {
     const $button = getShowItemInFolderButton(destinationFilePath);
     $tr.find('td.actions').html($button);
+    downloading.delete(link);
   }
 };
 
@@ -106,8 +123,6 @@ function getVideoDownloadPercentage(info) {
 
 function videoToHTML(video, percentage = 0) {
     const trClass = (percentage > 0) ? 'paused' : '';
-    let actions = (percentage > 0) ? getResumeButton() : '';
-    actions += getCancelAndDeleteButton();
 
     return '<tr id="' + video.id + '" class="' + trClass + '">' +
             '<td class="col-md-5 col-xs-2">' + video.title + '</td>' +
@@ -115,20 +130,26 @@ function videoToHTML(video, percentage = 0) {
             '<td class="col-md-1 col-xs-2 right">' + video.duration + '</td>' +
             '<td class="col-md-1 col-xs-2 right">' + prettyBytes(video.size) + '</td>' +
             '<td class="col-md-1 col-xs-2 status right">' + Math.round(percentage) + '%</td>' +
-            '<td class="col-md-1 col-xs-2 actions">' + actions + '</td>' +
+            '<td class="col-md-1 col-xs-2 actions"></td>' +
         '</tr>';
 }
 
-function getResumeButton() {
-    return '<button title="Resume download" class="btn btn-primary btn-sm" disabled>' +
-                '<span class="fa fa-play"></span>' +
-            '</button>';
+function updateActions($actions, filePath, percentage, link = '') {
+    if (percentage === 100) {
+        return $actions.html(getShowItemInFolderButton(filePath));
+    }
+
+    if (link !== '') {
+        return $actions.html(getResumeButton(link));
+    }
+
+    $actions.html('');
 }
 
-function getCancelAndDeleteButton() {
-    return '<button title="(Cancel the download and) delete this file" class="btn btn-danger btn-sm" disabled>' +
-                '<span class="fa fa-trash"></span>' +
-            '</button>';
+function getResumeButton(link) {
+    return $('<button title="Resume download" class="btn btn-primary btn-sm">' +
+                '<span class="fa fa-play"></span>' +
+            '</button>').on('click', () => downloadVideoAndUpdateTable(link, console.log, console.log));
 }
 
 function getShowItemInFolderButton(destinationFilePath) {
