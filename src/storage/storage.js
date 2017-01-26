@@ -59,7 +59,7 @@ export var getDownloads = function () {
 }
 
 export var hasVideoInDownloads = function (id) {
-  return Object.keys(getDownloads()).indexOf(id) > -1;
+  return config.has(KEYS.DOWNLOADS + '.' + id);
 }
 
 export var addVideoInDownloads = function (id, info) {
