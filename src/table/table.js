@@ -73,9 +73,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
       onSuccess();
     } else {
       $tr.css('background-color', 'rgba(0, 0, 255, 0.2)'); // ToDo animate
-      // ToDo resume download
-      // downloadVideo(link, onResumeDownloading, onProgress, onError, onEnd, videoFromStorage);
-      onSuccess();
+      downloadVideo(link, onSuccess, onProgress, onError, onEnd, videoFromStorage.path);
     }
   } else {
     downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
