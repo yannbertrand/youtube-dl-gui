@@ -85,9 +85,9 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
 
     $tr.css('background-color', 'rgba(0, 0, 255, 0.2)'); // ToDo animate
     $actions.find('button').prop('disabled', true).find('span').addClass('fa-spin');
-    downloadVideo(link, onSuccess, onProgress, onError, onEnd, videoFromStorage.path);
+    downloadVideo(link, onSuccess, onProgress, onFail, onEnd, videoFromStorage.path);
   } else {
-    downloadVideo(link, onStartDownloading, onProgress, onError, onEnd);
+    downloadVideo(link, onStartDownloading, onProgress, onFail, onEnd);
   }
 
   downloading.add(id);
@@ -107,6 +107,16 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
     $tr.find('td.status').text(Math.round(percentage) + '%');
     moveProgressIndicator($tr, percentage);
     updateActions($actions, filePath, percentage);
+  }
+
+  function onFail(error) {
+    if ($actions) {
+      // Set percentage to 1 to get a resume button
+      updateActions($actions, filePath, 1, 'https://www.youtube.com/watch?v=' + id);
+    }
+
+    downloading.delete(id);
+    onError(error);
   }
 
   function onEnd(destinationFilePath) {
