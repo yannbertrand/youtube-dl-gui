@@ -147,7 +147,7 @@ function updateActions($actions, filePath, percentage, link = '') {
         return $actions.html(getResumeButton(link));
     }
 
-    $actions.html('');
+    $actions.html(getPauseButton());
 }
 
 function getResumeButton(link) {
@@ -160,6 +160,12 @@ function getShowItemInFolderButton(destinationFilePath) {
     return $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
           '<span class="fa fa-folder-open"></span>' +
       '</button>').on('click', () => shell.showItemInFolder(destinationFilePath))
+}
+
+function getPauseButton() {
+    return $('<button title="Pause video download" class="btn btn-secondary btn-sm">' +
+          '<span class="fa fa-pause"></span>' +
+      '</button>');
 }
 
 function moveProgressIndicator($tr, percentage) {
