@@ -61,18 +61,12 @@ function addStoredVideosToTable(videos) {
   }
 }
 
-const downloading = new Set();
-
 export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   let $tr;
   let $actions;
   let filePath;
 
   const id = url.parse(link, true).query.v;
-  if (downloading.has(id)) {
-    return onError('Already downloading');
-  }
-
   const videoFromStorage = getVideoInDownloads(id);
   if (typeof videoFromStorage !== 'undefined') {
     $tr = $('table').find('tr#' + id);
@@ -89,8 +83,6 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   } else {
     downloadVideo(link, onStartDownloading, onProgress, onFail, onEnd);
   }
-
-  downloading.add(id);
 
   function onStartDownloading(info, path) {
     $tr = $(videoToHTML(info));
@@ -110,19 +102,21 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   }
 
   function onFail(error) {
+    if (error === 'Already downloading') {
+      return onError(error);
+    }
+
     if ($actions) {
       // Set percentage to 1 to get a resume button
       updateActions($actions, filePath, 1, 'https://www.youtube.com/watch?v=' + id);
     }
 
-    downloading.delete(id);
     onError(error);
   }
 
   function onEnd(destinationFilePath) {
     const $button = getShowItemInFolderButton(destinationFilePath);
     $tr.find('td.actions').html($button);
-    downloading.delete(id);
   }
 };
 
