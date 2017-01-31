@@ -3,11 +3,19 @@ import { getBaseDestination, getProxy, addVideoInDownloads, filterVideoInfoToSto
 const youtubedl = require('youtube-dl');
 const path = require('path');
 const fs = require('fs');
+const url = require('url');
 const { remote } = require('electron');
 
 export var init = function () { };
 
+const downloading = new Set();
+
 export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, filePath = '') {
+  const id = url.parse(link, true).query.v;
+  if (downloading.has(id)) {
+    return onError('Already downloading');
+  }
+
   const resuming = filePath !== '';
 
   let downloaded = 0;
@@ -26,6 +34,8 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
     getOptions(),
     { start: downloaded, cwd: baseDestination }
   );
+
+  downloading.add(id);
 
   let size = 0;
   video.on('info', function (info) {
@@ -61,9 +71,13 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
     }
   });
 
-  video.on('error', onError);
+  video.on('error', (error) => {
+    downloading.delete(id);
+    onError(error);
+  });
   video.on('end', () => {
     console.log('finished downloading!');
+    downloading.delete(id);
     onEnd(filePath);
   });
 };
