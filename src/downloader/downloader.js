@@ -82,6 +82,13 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
   });
 };
 
+export var pauseDownload = function (id, callback) {
+  downloading.get(id).pause();
+  downloading.delete(id);
+
+  callback();
+};
+
 function getOptions() {
   const options = ['--format=18'];
 
