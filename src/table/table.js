@@ -147,7 +147,9 @@ function updateActions($actions, filePath, percentage, link = '') {
         return $actions.html(getResumeButton(link));
     }
 
-    $actions.html(getPauseButton());
+    if ($actions.has('.fa-pause').length === 0) {
+      $actions.html(getPauseButton());
+    }
 }
 
 function getResumeButton(link) {
