@@ -55,7 +55,7 @@ function addStoredVideosToTable(videos) {
 
     const $tr = $(videoToHTML(info, percentage));
     moveProgressIndicator($tr, percentage);
-    updateActions($tr.find('td.actions'), info.path, percentage, 'https://www.youtube.com/watch?v=' + info.id);
+    updateActions(info.id, $tr.find('td.actions'), info.path, percentage, 'https://www.youtube.com/watch?v=' + info.id);
 
     $datatable.row.add($tr).draw(false);
   }
@@ -98,7 +98,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   function onProgress(percentage) {
     $tr.find('td.status').text(Math.round(percentage) + '%');
     moveProgressIndicator($tr, percentage);
-    updateActions($actions, filePath, percentage);
+    updateActions(id, $actions, filePath, percentage);
   }
 
   function onFail(error) {
@@ -108,7 +108,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
 
     if ($actions) {
       // Set percentage to 1 to get a resume button
-      updateActions($actions, filePath, 1, 'https://www.youtube.com/watch?v=' + id);
+      updateActions(id, $actions, filePath, 1, 'https://www.youtube.com/watch?v=' + id);
     }
 
     onError(error);
@@ -138,7 +138,7 @@ function videoToHTML(video, percentage = 0) {
         '</tr>';
 }
 
-function updateActions($actions, filePath, percentage, link = '') {
+function updateActions(id, $actions, filePath, percentage, link = '') {
     if (percentage === 100) {
         return $actions.html(getShowItemInFolderButton(filePath));
     }
