@@ -42,10 +42,10 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
     size = info.size;
     total = size;
     if (resuming) {
-      console.log('Resuming download');
+      console.log('Resuming download ' + id);
       total += downloaded;
     } else {
-      console.log('Beginning download');
+      console.log('Beginning download ' + id);
 
       const destination = getDestination(baseDestination, info);
       if (! fs.existsSync(destination)) {
@@ -83,6 +83,8 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
 };
 
 export var pauseDownload = function (id, callback) {
+  console.log('Pause download ' + id);
+
   downloading.get(id).pause();
   downloading.delete(id);
 
