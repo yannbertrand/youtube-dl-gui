@@ -8,7 +8,7 @@ const { remote } = require('electron');
 
 export var init = function () { };
 
-const downloading = new Set();
+const downloading = new Map();
 
 export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, filePath = '') {
   const id = url.parse(link, true).query.v;
@@ -35,7 +35,7 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
     { start: downloaded, cwd: baseDestination }
   );
 
-  downloading.add(id);
+  downloading.set(id, video);
 
   let size = 0;
   video.on('info', function (info) {
