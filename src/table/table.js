@@ -1,4 +1,4 @@
-import { downloadVideo } from '../downloader/downloader';
+import { downloadVideo, pauseDownload } from '../downloader/downloader';
 import { getDownloads, getVideoInDownloads, removeVideoFromDownloads } from '../storage/storage';
 
 const path = require('path');
@@ -148,7 +148,7 @@ function updateActions(id, $actions, filePath, percentage, link = '') {
     }
 
     if ($actions.has('.fa-pause').length === 0) {
-      $actions.html(getPauseButton());
+      $actions.html(getPauseButton(id, $actions, filePath, percentage));
     }
 }
 
@@ -164,10 +164,13 @@ function getShowItemInFolderButton(destinationFilePath) {
       '</button>').on('click', () => shell.showItemInFolder(destinationFilePath))
 }
 
-function getPauseButton() {
+function getPauseButton(id, $actions, filePath, percentage) {
     return $('<button title="Pause video download" class="btn btn-secondary btn-sm">' +
           '<span class="fa fa-pause"></span>' +
-      '</button>');
+      '</button>').on('click', () => {
+        $actions.find('button').prop('disabled', true).find('span').addClass('fa-spin');
+        pauseDownload(id, () => updateActions(id, $actions, filePath, percentage, 'https://www.youtube.com/watch?v=' + id));
+      });
 }
 
 function moveProgressIndicator($tr, percentage) {
