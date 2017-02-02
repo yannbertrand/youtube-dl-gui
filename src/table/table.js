@@ -78,7 +78,14 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
     }
 
     $tr.css('background-color', 'rgba(0, 0, 255, 0.2)'); // ToDo animate
-    $actions.find('button').prop('disabled', true).find('span').addClass('fa-spin');
+
+    const $actionButton = $actions.find('button');
+    const $actionButtonSpan = $actionButton.find('span');
+    if ($actionButtonSpan.hasClass('fa-play')) {
+      $actionButton.prop('disabled', true);
+      $actionButtonSpan.addClass('fa-spin');
+    }
+
     downloadVideo(link, onSuccess, onProgress, onFail, onEnd, videoFromStorage.path);
   } else {
     downloadVideo(link, onStartDownloading, onProgress, onFail, onEnd);
