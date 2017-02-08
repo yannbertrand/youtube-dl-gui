@@ -1,5 +1,4 @@
-import DownloaderFactory from '../downloader/downloader';
-import { downloadVideo, pauseDownload } from '../downloader/downloader';
+import DownloaderFactory, { Downloader } from '../downloader/downloader';
 import Storage from '../storage/storage';
 
 const path = require('path');
@@ -51,18 +50,16 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   let $actions;
   let filePath;
 
-  const id = url.parse(link, true).query.v;
-  const videoFromStorage = Storage.getVideoInDownloads(id);
-  if (typeof videoFromStorage !== 'undefined') {
+  const id = DownloaderFactory.getIdFromLink(link);
+  if (DownloaderFactory.has(id)) {
     $tr = $('table').find('tr#' + id);
     $actions = $tr.find('td.actions');
 
-    if (getVideoDownloadPercentage(videoFromStorage) === 100) {
+    const downloader = DownloaderFactory.get(id);
+    if (downloader.status === Downloader.STATUSES.DONE) {
       $tr.css('background-color', 'rgba(0, 255, 0, 0.2)'); // ToDo animate
       return onSuccess();
     }
-
-    $tr.css('background-color', 'rgba(0, 0, 255, 0.2)'); // ToDo animate
 
     const $actionButton = $actions.find('button');
     const $actionButtonSpan = $actionButton.find('span');
@@ -71,15 +68,15 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
       $actionButtonSpan.addClass('fa-spin');
     }
 
-    downloadVideo(link, onSuccess, onProgress, onFail, onEnd, videoFromStorage.path);
-  } else {
-    downloadVideo(link, onStartDownloading, onProgress, onFail, onEnd);
+    return downloader.resume(onSuccess, onProgress, onFail, onEnd);
   }
 
-  function onStartDownloading(info, path) {
-    $tr = $(videoToHTML(info));
+  const downloader = DownloaderFactory.start(id, onStartDownloading, onProgress, onFail, onEnd);
+
+  function onStartDownloading() {
+    $tr = $(videoToHTML(downloader.video));
     $actions = $tr.find('td.actions');
-    filePath = path;
+    filePath = downloader.path;
 
     $datatable.row.add($tr).draw(false);
     $tableParent.show();

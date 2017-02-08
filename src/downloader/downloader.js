@@ -11,7 +11,9 @@ export var init = function () { };
 const downloading = new Map();
 
 
-export default (() => {
+export default DownloaderFactory;
+
+const DownloaderFactory = (() => {
 
   let instance;
 
@@ -41,18 +43,53 @@ export default (() => {
       return this.downloaders;
     }
 
+    has(id) {
+      return this.downloaders.has(id);
+    }
+
+    get(id) {
+      return this.downloaders.get(id);
+    }
+
+    start(id, onInfo, onProgress, onError, onEnd) {
+      if (this.downloaders.has(id)) {
+        return onError('Already downloading');
+      }
+
+      const downloader = new Downloader(id);
+      downloader.start(onInfo, onProgress, onError, onEnd);
+
+      this.downloaders.set(id, downloader);
+
+      return downloader;
+    }
+
+    getIdFromLink(link) {
+      return url.parse(link, true).query.v;
+    }
+
+    getLinkFromId(id) {
+      return 'https://www.youtube.com/watch?v=' + id;
+    }
+
   }
 
   return new DownloaderFactory();
 
 })();
 
-class Downloader {
+export class Downloader {
 
-  constructor(video) {
+  constructor(videoOrId) {
     this.download = null;
+    this.downloaded = 0;
+    this.total = 0;
 
-    this.video = video;
+    if (typeof videoOrId === 'string') {
+      this.video = { id: videoOrId };
+    } else {
+      this.video = videoOrId;
+    }
 
     this.status = Downloader.STATUSES.INIT;
     this.progress = this.getProgress();
@@ -64,15 +101,89 @@ class Downloader {
       WAITING: 'waiting',
       DOWNLOADING: 'downloading',
       PAUSED: 'paused',
+      ERROR: 'error',
       DONE: 'done',
     }
   }
 
   getProgress() {
-    if (this.video.path === null) { return 0.0; }
+    if (typeof this.video.path === 'undefined') { return 0.0; }
 
     const fileSize = fs.statSync(this.video.path).size;
     return (fileSize / this.video.size) * 100.0;
+  }
+
+  start(onInfo, onProgress, onError, onEnd) {
+    this.download = youtubedl(
+      DownloaderFactory.getLinkFromId(this.video.id),
+      this.getDownloadOptions(),
+      { start: this.downloaded, cwd: this.getBaseDestination() }
+    );
+
+    this.download.on('info', (info) => this.onStartInfo(info, onInfo));
+    this.download.on('data', (chunk) => this.onProgress(chunk, onProgress));
+    this.download.on('error', (error) => this.onError(error, onError));
+    this.download.on('end', () => this.onEnd(onEnd));
+  }
+
+  onStartInfo(info, onInfo) {
+    console.log('Beginning download ' + this.video.id);
+
+    this.total = info.size;
+    this.video = this.filterVideoInfoToStore(info, this.getFilePath(info));
+
+    this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
+    Storage.addVideoInDownloads(this.video.id, this.video);
+
+    onInfo();
+  }
+
+  resume(onInfo, onProgress, onError, onEnd) {
+    try {
+      this.downloaded = fs.statSync(this.video.path).size;
+    } catch (error) {
+      return onError(error);
+    }
+
+    this.download = youtubedl(
+      DownloaderFactory.getLinkFromId(this.video.id),
+      this.getDownloadOptions(),
+      { start: this.downloaded, cwd: this.getBaseDestination() }
+    );
+
+    this.download.on('info', (info) => this.onResumeInfo(info, onInfo));
+    this.download.on('data', (chunk) => this.onProgress(chunk, onProgress));
+    this.download.on('error', (error) => this.onError(error, onError));
+    this.download.on('end', () => this.onEnd(onEnd));
+  }
+
+  onResumeInfo(info, onInfo) {
+    console.log('Resuming download ' + this.video.id);
+
+    this.total = info.size + this.downloaded;
+    this.video = this.filterVideoInfoToStore(info);
+
+    this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
+
+    onInfo();
+  }
+
+  onProgress(chunk, onProgress) {
+    this.downloaded += chunk.length;
+
+    if (this.video.size > 0) {
+      onProgress((this.downloaded / this.total) * 100);
+    }
+  }
+
+  onError(error, onError) {
+    this.status = Downloader.STATUSES.ERROR;
+    onError(error);
+  }
+
+  onEnd(onEnd) {
+    console.log('finished downloading!');
+    onEnd();
   }
 
   pause() {
@@ -85,112 +196,64 @@ class Downloader {
     }
   }
 
-};
-
-export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, filePath = '') {
-  const id = url.parse(link, true).query.v;
-  if (downloading.has(id)) {
-    return onError('Already downloading');
+  filterVideoInfoToStore(info, filePath = '') {
+    return {
+      id: this.video.id,
+      title: info.title,
+      uploader: info.uploader,
+      duration: info.duration,
+      size: this.video.size || info.size,
+      formatId: info.format_id,
+      uploadedDate: info.uploaded_date,
+      path: this.video.path || filePath,
+      launchedAt: new Date(),
+    };
   }
 
-  const resuming = filePath !== '';
+  getDownloadOptions() {
+    const options = ['--format=18'];
 
-  let downloaded = 0;
-  let total = 0;
-  if (resuming && fs.existsSync(filePath)) {
-    downloaded = fs.statSync(filePath).size;
-  }
-
-  const baseDestination = Storage.getBaseDestination();
-  if (! fs.existsSync(baseDestination)) {
-    fs.mkdirSync(baseDestination);
-  }
-
-  const video = youtubedl(
-    link,
-    getOptions(),
-    { start: downloaded, cwd: baseDestination }
-  );
-
-  downloading.set(id, video);
-
-  let size = 0;
-  video.on('info', function (info) {
-    size = info.size;
-    total = size;
-    if (resuming) {
-      console.log('Resuming download ' + id);
-      total += downloaded;
-    } else {
-      console.log('Beginning download ' + id);
-
-      const destination = getDestination(baseDestination, info);
-      if (! fs.existsSync(destination)) {
-        fs.mkdirSync(destination);
-      }
-
-      filePath = getFilePath(destination, info);
+    const proxy = Storage.getProxy();
+    if(typeof proxy !== 'undefined') {
+      options.push('--proxy=' + proxy);
     }
 
-    onInfo(info, filePath);
-    video.pipe(fs.createWriteStream(filePath, { flags: 'a' }));
+    return options;
+  }
 
-    if (! resuming) {
-      Storage.addVideoInDownloads(info.id, Storage.filterVideoInfoToStore(info, filePath));
+  getBaseDestination() {
+    const baseDestination = Storage.getBaseDestination();
+    if (! fs.existsSync(baseDestination)) {
+      fs.mkdirSync(baseDestination);
     }
-  });
 
-  video.on('data', function (chunk) {
-    downloaded += chunk.length;
+    return baseDestination;
+  }
 
-    if (size > 0) {
-      onProgress((downloaded / total) * 100);
+  getDestination(video) {
+    const destination = this.getCompleteDestination(this.getBaseDestination(), video);
+    if (! fs.existsSync(destination)) {
+      fs.mkdirSync(destination);
     }
-  });
 
-  video.on('error', (error) => {
-    downloading.delete(id);
-    onError(error);
-  });
-  video.on('end', () => {
-    console.log('finished downloading!');
-    downloading.delete(id);
-    onEnd(filePath);
-  });
+    return destination;
+  }
+
+  getCompleteDestination(baseDestination, info) {
+    if (info.playlist === null || info.playlist === 'NA') {
+      return path.join(baseDestination, info.uploader);
+    }
+
+    return path.join(baseDestination, info.uploader, info.playlist);
+  }
+
+  getFilePath(video) {
+    const destination = this.getDestination(video);
+    if (video.playlist_index === null || video.playlist_index === 'NA') {
+      return path.join(destination, video._filename);
+    }
+
+    return path.join(destination, video.playlist_index + ' - ' + video._filename);
+  }
+
 };
-
-export var pauseDownload = function (id, callback) {
-  console.log('Pause download ' + id);
-
-  downloading.get(id).pause();
-  downloading.delete(id);
-
-  callback();
-};
-
-function getOptions() {
-  const options = ['--format=18'];
-
-  const proxy = Storage.getProxy();
-  if(typeof proxy !== 'undefined') {
-    options.push('--proxy=' + proxy);
-  }
-
-  return options;
-}
-
-function getDestination(baseDestination, info) {
-  if (info.playlist === null || info.playlist === 'NA') {
-    return path.join(baseDestination, info.uploader);
-  }
-
-  return path.join(baseDestination, info.uploader, info.playlist);
-}
-
-function getFilePath(destination, info) {
-  if (info.playlist_index === null || info.playlist_index === 'NA') {
-    return path.join(destination, info._filename);
-  }
-
-  return path.join(destination, info.playlist_index + ' - ' + info._filename);
-}
