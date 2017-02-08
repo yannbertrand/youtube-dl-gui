@@ -46,7 +46,7 @@ export default (() => {
     removeVideoFromDownloads(id) { config.delete(KEYS.DOWNLOADS + '.' + id); }
 
     addVideoInDownloads(id, info) {
-      if (hasVideoInDownloads(id)) {
+      if (this.hasVideoInDownloads(id)) {
         throw new Error('Already in list');
       }
 
