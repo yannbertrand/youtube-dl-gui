@@ -73,6 +73,10 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
 
   const downloader = DownloaderFactory.start(id, onStartDownloading, onProgress, onFail, onEnd);
 
+  downloader.on('status/update', function (data) {
+    console.log(data);
+  })
+
   function onStartDownloading() {
     $tr = $(videoToHTML(downloader.video));
     $actions = $tr.find('td.actions');

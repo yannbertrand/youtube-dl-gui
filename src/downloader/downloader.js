@@ -4,6 +4,7 @@ const youtubedl = require('youtube-dl');
 const path = require('path');
 const fs = require('fs');
 const url = require('url');
+const EventEmitter = require('events');
 const { remote } = require('electron');
 
 export var init = function () { };
@@ -78,9 +79,13 @@ const DownloaderFactory = (() => {
 
 })();
 
-export class Downloader {
+export { Downloader };
+
+class Downloader extends EventEmitter {
 
   constructor(videoOrId) {
+    super();
+
     this.download = null;
     this.downloaded = 0;
     this.total = 0;
@@ -106,6 +111,11 @@ export class Downloader {
     }
   }
 
+  updateStatus(newStatus) {
+    this.emit('status/update', { oldStatus: this.status, newStatus: newStatus });
+    this.status = newStatus;
+  }
+
   getProgress() {
     if (typeof this.video.path === 'undefined') { return 0.0; }
 
@@ -119,6 +129,8 @@ export class Downloader {
       this.getDownloadOptions(),
       { start: this.downloaded, cwd: this.getBaseDestination() }
     );
+
+    this.updateStatus(Downloader.STATUSES.WAITING);
 
     this.download.on('info', (info) => customOnInfo.call(this, info, onInfo));
     this.download.on('data', (chunk) => this.onProgress(chunk, onProgress));
@@ -134,6 +146,8 @@ export class Downloader {
 
     this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
     Storage.addVideoInDownloads(this.video.id, this.video);
+
+    this.updateStatus(Downloader.STATUSES.WAITING);
 
     onInfo();
   }
@@ -156,6 +170,8 @@ export class Downloader {
 
     this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
 
+    this.updateStatus(Downloader.STATUSES.DOWNLOADING);
+
     onInfo();
   }
 
@@ -168,12 +184,13 @@ export class Downloader {
   }
 
   onError(error, onError) {
-    this.status = Downloader.STATUSES.ERROR;
+    this.updateStatus(Downloader.STATUSES.ERROR);
     onError(error);
   }
 
   onEnd(onEnd) {
     console.log('finished downloading!');
+    this.updateStatus(Downloader.STATUSES.DONE);
     onEnd();
   }
 
@@ -181,9 +198,9 @@ export class Downloader {
     if (this.download !== null) { download.pause(); }
 
     if (this.progress < 100) {
-      this.status = Downloader.STATUSES.PAUSED;
+      this.updateStatus(Downloader.STATUSES.PAUSED);
     } else {
-      this.status = Downloader.STATUSES.DONE;
+      this.updateStatus(Downloader.STATUSES.DONE);
     }
   }
 
