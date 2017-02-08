@@ -10,6 +10,83 @@ export var init = function () { };
 
 const downloading = new Map();
 
+
+export default (() => {
+
+  let instance;
+
+  class DownloaderFactory {
+
+    constructor() {
+      if (! instance) {
+        instance = this;
+      }
+
+      this.downloaders = new Map();
+
+      return this;
+    }
+
+    initDownloadersFromStorage() {
+      Storage.deleteNotFoundDownloads();
+      const videos = Storage.getDownloads();
+
+      for (const id in videos) {
+        const downloader = new Downloader(videos[id]);
+        downloader.pause();
+
+        this.downloaders.set(id, downloader);
+      }
+
+      return this.downloaders;
+    }
+
+  }
+
+  return new DownloaderFactory();
+
+})();
+
+class Downloader {
+
+  constructor(video) {
+    this.download = null;
+
+    this.video = video;
+
+    this.status = Downloader.STATUSES.INIT;
+    this.progress = this.getProgress();
+  }
+
+  static get STATUSES() {
+    return {
+      INIT: 'init',
+      WAITING: 'waiting',
+      DOWNLOADING: 'downloading',
+      PAUSED: 'paused',
+      DONE: 'done',
+    }
+  }
+
+  getProgress() {
+    if (this.video.path === null) { return 0.0; }
+
+    const fileSize = fs.statSync(this.video.path).size;
+    return (fileSize / this.video.size) * 100.0;
+  }
+
+  pause() {
+    if (this.download !== null) { download.pause(); }
+
+    if (this.progress < 100) {
+      this.status = Downloader.STATUSES.PAUSED;
+    } else {
+      this.status = Downloader.STATUSES.DONE;
+    }
+  }
+
+};
+
 export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, filePath = '') {
   const id = url.parse(link, true).query.v;
   if (downloading.has(id)) {

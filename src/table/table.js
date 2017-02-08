@@ -1,3 +1,4 @@
+import DownloaderFactory from '../downloader/downloader';
 import { downloadVideo, pauseDownload } from '../downloader/downloader';
 import Storage from '../storage/storage';
 
@@ -21,41 +22,25 @@ export var init = function () {
     autoWidth: false,
   });
 
-  const videos = getVideosFromStorage();
-  if (videos.length == 0) {
+  const downloaders = DownloaderFactory.initDownloadersFromStorage();
+  if (downloaders.size === 0) {
     return;
   }
 
   $('body').removeClass('center-vertical');
 
-  addStoredVideosToTable(videos);
+  addStoredVideosToTable(downloaders);
 
   $tableParent.show();
 };
 
-function getVideosFromStorage() {
-  const downloads = Storage.getDownloads();
-  const videos = [];
-  for (const id in downloads) {
-    const info = downloads[id];
-    try {
-      fs.statSync(info.path);
-      videos.push(info);
-    } catch (error) {
-      Storage.removeVideoFromDownloads(id);
-    }
-  }
+function addStoredVideosToTable(downloaders) {
+  for (const [id, downloader] of downloaders.entries()) {
+    const percentage = downloader.getProgress();
 
-  return videos;
-}
-
-function addStoredVideosToTable(videos) {
-  for (const info of videos) {
-    const percentage = getVideoDownloadPercentage(info);
-
-    const $tr = $(videoToHTML(info, percentage));
+    const $tr = $(videoToHTML(downloader.video, percentage));
     moveProgressIndicator($tr, percentage);
-    updateActions(info.id, $tr.find('td.actions'), info.path, percentage, 'https://www.youtube.com/watch?v=' + info.id);
+    updateActions(id, $tr.find('td.actions'), downloader.video.path, percentage, 'https://www.youtube.com/watch?v=' + id);
 
     $datatable.row.add($tr).draw(false);
   }
