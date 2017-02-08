@@ -41,7 +41,7 @@ function addStoredVideosToTable(downloaders) {
     moveProgressIndicator($tr, percentage);
 
     const $actions = $tr.find('td.actions');
-    downloader.on('status/update', (data) => updateActions($actions, data));
+    downloader.on('status/update', (data) => updateActions($actions, downloader, data));
     downloader.refreshStatus();
 
     $datatable.row.add($tr).draw(false);
@@ -71,7 +71,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
       $actionButtonSpan.addClass('fa-spin');
     }
 
-    downloader.on('status/update', (data) => updateActions($actions, data));
+    downloader.on('status/update', (data) => updateActions($actions, downloader, data));
     downloader.refreshStatus();
 
     return downloader.resume(onSuccess, onProgress, onFail, () => {});
@@ -82,7 +82,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   function onStartDownloading() {
     $tr = $(videoToHTML(downloader.video));
     $actions = $tr.find('td.actions');
-    downloader.on('status/update', (data) => updateActions($actions, data));
+    downloader.on('status/update', (data) => updateActions($actions, downloader, data));
     downloader.refreshStatus();
     filePath = downloader.path;
 
@@ -117,7 +117,7 @@ function videoToHTML(video, percentage = 0) {
         '</tr>';
 }
 
-function updateActions($actions, data) {
+function updateActions($actions, downloader, data) {
   switch (data.status) {
     case Downloader.STATUSES.DOWNLOADING:
       return $actions.text('pause');
