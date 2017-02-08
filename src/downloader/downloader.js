@@ -117,6 +117,10 @@ class Downloader extends EventEmitter {
     this.status = newStatus;
   }
 
+  refreshStatus() {
+    this.updateStatus(this.status);
+  }
+
   checkStatus() {
     if (this.progress === 100) {
       this.updateStatus(Downloader.STATUSES.DONE);

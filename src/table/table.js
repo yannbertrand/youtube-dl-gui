@@ -39,7 +39,10 @@ function addStoredVideosToTable(downloaders) {
 
     const $tr = $(videoToHTML(downloader.video, percentage));
     moveProgressIndicator($tr, percentage);
-    updateActions(id, $tr.find('td.actions'), downloader.video.path, percentage, 'https://www.youtube.com/watch?v=' + id);
+
+    const $actions = $tr.find('td.actions');
+    downloader.on('status/update', (data) => updateActions($actions, data));
+    downloader.refreshStatus();
 
     $datatable.row.add($tr).draw(false);
   }
@@ -68,18 +71,19 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
       $actionButtonSpan.addClass('fa-spin');
     }
 
-    return downloader.resume(onSuccess, onProgress, onFail, onEnd);
+    downloader.on('status/update', (data) => updateActions($actions, data));
+    downloader.refreshStatus();
+
+    return downloader.resume(onSuccess, onProgress, onFail, () => {});
   }
 
-  const downloader = DownloaderFactory.start(id, onStartDownloading, onProgress, onFail, onEnd);
-
-  downloader.on('status/update', function (data) {
-    console.log(data);
-  })
+  const downloader = DownloaderFactory.start(id, onStartDownloading, onProgress, onFail, () => {});
 
   function onStartDownloading() {
     $tr = $(videoToHTML(downloader.video));
     $actions = $tr.find('td.actions');
+    downloader.on('status/update', (data) => updateActions($actions, data));
+    downloader.refreshStatus();
     filePath = downloader.path;
 
     $datatable.row.add($tr).draw(false);
@@ -91,7 +95,6 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   function onProgress(percentage) {
     $tr.find('td.status').text(Math.round(percentage) + '%');
     moveProgressIndicator($tr, percentage);
-    updateActions(id, $actions, filePath, percentage);
   }
 
   function onFail(error) {
@@ -99,24 +102,9 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
       return onError(error);
     }
 
-    if ($actions) {
-      // Set percentage to 1 to get a resume button
-      updateActions(id, $actions, filePath, 1, 'https://www.youtube.com/watch?v=' + id);
-    }
-
     onError(error);
   }
-
-  function onEnd(destinationFilePath) {
-    const $button = getShowItemInFolderButton(destinationFilePath);
-    $tr.find('td.actions').html($button);
-  }
 };
-
-function getVideoDownloadPercentage(info) {
-  const fileSize = fs.statSync(info.path).size;
-  return (fileSize / info.size) * 100.0;
-}
 
 function videoToHTML(video, percentage = 0) {
     return '<tr id="' + video.id + '">' +
@@ -129,18 +117,17 @@ function videoToHTML(video, percentage = 0) {
         '</tr>';
 }
 
-function updateActions(id, $actions, filePath, percentage, link = '') {
-    if (percentage === 100) {
-        return $actions.html(getShowItemInFolderButton(filePath));
-    }
-
-    if (link !== '') {
-        return $actions.html(getResumeButton(link));
-    }
-
-    if ($actions.has('.fa-pause').length === 0) {
-      $actions.html(getPauseButton(id, $actions, filePath, percentage));
-    }
+function updateActions($actions, data) {
+  switch (data.status) {
+    case Downloader.STATUSES.DOWNLOADING:
+      return $actions.text('pause');
+    case Downloader.STATUSES.PAUSED:
+      return $actions.text('resume');
+    case Downloader.STATUSES.DONE:
+      return $actions.text('done');
+    default:
+      return $actions.text('');
+  }
 }
 
 function getResumeButton(link) {
