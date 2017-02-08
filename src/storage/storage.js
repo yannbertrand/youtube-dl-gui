@@ -23,7 +23,7 @@ export var init = function () {
   }
 };
 
-export var Storage = (() => {
+export default (() => {
   let instance = null;
 
   class Storage {

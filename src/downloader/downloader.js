@@ -1,4 +1,4 @@
-import { Storage } from '../storage/storage';
+import Storage from '../storage/storage';
 
 const youtubedl = require('youtube-dl');
 const path = require('path');
