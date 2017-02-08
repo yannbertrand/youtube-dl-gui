@@ -113,14 +113,14 @@ export class Downloader {
     return (fileSize / this.video.size) * 100.0;
   }
 
-  start(onInfo, onProgress, onError, onEnd) {
+  start(onInfo, onProgress, onError, onEnd, customOnInfo = this.onStartInfo) {
     this.download = youtubedl(
       DownloaderFactory.getLinkFromId(this.video.id),
       this.getDownloadOptions(),
       { start: this.downloaded, cwd: this.getBaseDestination() }
     );
 
-    this.download.on('info', (info) => this.onStartInfo(info, onInfo));
+    this.download.on('info', (info) => customOnInfo.call(this, info, onInfo));
     this.download.on('data', (chunk) => this.onProgress(chunk, onProgress));
     this.download.on('error', (error) => this.onError(error, onError));
     this.download.on('end', () => this.onEnd(onEnd));
@@ -145,16 +145,7 @@ export class Downloader {
       return onError(error);
     }
 
-    this.download = youtubedl(
-      DownloaderFactory.getLinkFromId(this.video.id),
-      this.getDownloadOptions(),
-      { start: this.downloaded, cwd: this.getBaseDestination() }
-    );
-
-    this.download.on('info', (info) => this.onResumeInfo(info, onInfo));
-    this.download.on('data', (chunk) => this.onProgress(chunk, onProgress));
-    this.download.on('error', (error) => this.onError(error, onError));
-    this.download.on('end', () => this.onEnd(onEnd));
+    this.start(onInfo, onProgress, onError, onEnd, this.onResumeInfo);
   }
 
   onResumeInfo(info, onInfo) {
