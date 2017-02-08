@@ -37,6 +37,7 @@ const DownloaderFactory = (() => {
       for (const id in videos) {
         const downloader = new Downloader(videos[id]);
         downloader.pause();
+        downloader.checkStatus();
 
         this.downloaders.set(id, downloader);
       }
@@ -114,6 +115,12 @@ class Downloader extends EventEmitter {
   updateStatus(newStatus) {
     this.emit('status/update', { status: newStatus });
     this.status = newStatus;
+  }
+
+  checkStatus() {
+    if (this.progress === 100) {
+      this.updateStatus(Downloader.STATUSES.DONE);
+    }
   }
 
   getProgress() {
@@ -197,11 +204,7 @@ class Downloader extends EventEmitter {
   pause() {
     if (this.download !== null) { download.pause(); }
 
-    if (this.progress < 100) {
-      this.updateStatus(Downloader.STATUSES.PAUSED);
-    } else {
-      this.updateStatus(Downloader.STATUSES.DONE);
-    }
+    this.updateStatus(Downloader.STATUSES.PAUSED);
   }
 
   filterVideoInfoToStore(info, filePath = '') {
