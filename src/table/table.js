@@ -120,13 +120,13 @@ function videoToHTML(video, percentage = 0) {
 function updateActions($actions, downloader, data) {
   switch (data.status) {
     case Downloader.STATUSES.DOWNLOADING:
-      return $actions.text('pause');
+      return $actions.html(getPauseButton($actions, downloader));
     case Downloader.STATUSES.PAUSED:
-      return $actions.text('resume');
+      return $actions.html(getResumeButton(DownloaderFactory.getLinkFromId(downloader.video.id)));
     case Downloader.STATUSES.DONE:
-      return $actions.text('done');
+      return $actions.html(getShowItemInFolderButton(downloader.video.path));
     default:
-      return $actions.text('');
+      return $actions.html('');
   }
 }
 
@@ -136,18 +136,18 @@ function getResumeButton(link) {
             '</button>').on('click', () => downloadVideoAndUpdateTable(link, console.log, console.log));
 }
 
-function getShowItemInFolderButton(destinationFilePath) {
+function getShowItemInFolderButton(filePath) {
     return $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
           '<span class="fa fa-folder-open"></span>' +
-      '</button>').on('click', () => shell.showItemInFolder(destinationFilePath))
+      '</button>').on('click', () => shell.showItemInFolder(filePath))
 }
 
-function getPauseButton(id, $actions, filePath, percentage) {
+function getPauseButton($actions, downloader) {
     return $('<button title="Pause video download" class="btn btn-secondary btn-sm">' +
           '<span class="fa fa-pause"></span>' +
       '</button>').on('click', () => {
         $actions.find('button').prop('disabled', true).find('span').addClass('fa-spin');
-        pauseDownload(id, () => updateActions(id, $actions, filePath, percentage, 'https://www.youtube.com/watch?v=' + id));
+        downloader.pause();
       });
 }
 
