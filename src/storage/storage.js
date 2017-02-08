@@ -23,74 +23,53 @@ export var init = function () {
   }
 };
 
-export var clear = function () {
-  config.clear();
-}
+export var Storage = (() => {
+  let instance = null;
 
-export var save = function (key, value) {
-  config.set(key, value);
-};
+  class Storage {
 
-export var get = function (key) {
-  config.get(key);
-};
+    constructor() {
+      if (! instance) { instance = this; }
 
-// base dest setting
-export var getBaseDestination = function () {
-  return config.get(KEYS.BASE_DESTINATION);
-}
+      return instance;
+    }
 
-export var setBaseDestination = function (baseDestination) {
-  config.set(KEYS.BASE_DESTINATION, baseDestination);
-}
+    getBaseDestination() { return config.get(KEYS.BASE_DESTINATION); }
+    setBaseDestination(baseDestination) { config.set(KEYS.BASE_DESTINATION, baseDestination); }
 
-// proxy setting
-export var getProxy = function () {
-  return config.get(KEYS.PROXY);
-}
+    getProxy() { return config.get(KEYS.PROXY); }
+    setProxy(proxy) { config.set(KEYS.PROXY, proxy); }
 
-export var setProxy = function (proxy) {
-  config.set(KEYS.PROXY, proxy);
-}
+    getDownloads() { return config.get(KEYS.DOWNLOADS); }
+    hasVideoInDownloads(id) { return config.has(KEYS.DOWNLOADS + '.' + id); }
+    getVideoInDownloads(id) { return config.get(KEYS.DOWNLOADS + '.' + id); }
+    removeVideoFromDownloads(id) { config.delete(KEYS.DOWNLOADS + '.' + id); }
 
-// Downloads
-export var getDownloads = function () {
-  return config.get(KEYS.DOWNLOADS);
-}
+    addVideoInDownloads(id, info) {
+      if (hasVideoInDownloads(id)) {
+        throw new Error('Already in list');
+      }
 
-export var hasVideoInDownloads = function (id) {
-  return config.has(KEYS.DOWNLOADS + '.' + id);
-}
+      const downloads = config.get(KEYS.DOWNLOADS);
+      downloads[id] = info;
 
-export var getVideoInDownloads = function (id) {
-  return config.get(KEYS.DOWNLOADS + '.' + id);
-}
+      config.set(KEYS.DOWNLOADS, downloads);
+    }
 
-export var addVideoInDownloads = function (id, info) {
-  const downloads = config.get(KEYS.DOWNLOADS);
-  if (hasVideoInDownloads(id)) {
-    throw new Error('Already in list');
-  }
-
-  downloads[id] = info;
-
-  config.set(KEYS.DOWNLOADS, downloads);
-}
-
-export var removeVideoFromDownloads = function (id) {
-  config.delete(KEYS.DOWNLOADS + '.' + id);
-}
-
-export var filterVideoInfoToStore = function (info, filePath) {
-  return {
-    id: info.id,
-    title: info.title,
-    uploader: info.uploader,
-    duration: info.duration,
-    size: info.size,
-    formatId: info.format_id,
-    uploadedDate: info.uploaded_date,
-    path: filePath,
-    launchedAt: new Date(),
+    filterVideoInfoToStore(info, filePath) {
+      return {
+        id: info.id,
+        title: info.title,
+        uploader: info.uploader,
+        duration: info.duration,
+        size: info.size,
+        formatId: info.format_id,
+        uploadedDate: info.uploaded_date,
+        path: filePath,
+        launchedAt: new Date(),
+      };
+    }
   };
-}
+
+  return new Storage();
+})();
