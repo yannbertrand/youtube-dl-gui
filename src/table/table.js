@@ -63,13 +63,6 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
       return onSuccess();
     }
 
-    const $actionButton = $actions.find('button');
-    const $actionButtonSpan = $actionButton.find('span');
-    if ($actionButtonSpan.hasClass('fa-play')) {
-      $actionButton.prop('disabled', true);
-      $actionButtonSpan.addClass('fa-spin');
-    }
-
     downloader.on('status/update', (data) => updateActions($actions, downloader, data));
     downloader.refreshStatus();
 
@@ -117,6 +110,8 @@ function videoToHTML(video, percentage = 0) {
 
 function updateActions($actions, downloader, data) {
   switch (data.status) {
+    case Downloader.STATUSES.WAITING:
+      return disableActions($actions);
     case Downloader.STATUSES.DOWNLOADING:
       return $actions.html(getPauseButton($actions, downloader));
     case Downloader.STATUSES.PAUSED:
@@ -125,6 +120,15 @@ function updateActions($actions, downloader, data) {
       return $actions.html(getShowItemInFolderButton(downloader.video.path));
     default:
       return $actions.html('');
+  }
+}
+
+function disableActions($actions) {
+  const $actionButton = $actions.find('button');
+  const $actionButtonSpan = $actionButton.find('span');
+  if ($actionButtonSpan.hasClass('fa-play')) {
+    $actionButton.prop('disabled', true);
+    $actionButtonSpan.addClass('fa-spin');
   }
 }
 
