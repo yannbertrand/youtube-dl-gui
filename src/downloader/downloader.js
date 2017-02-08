@@ -5,12 +5,8 @@ const path = require('path');
 const fs = require('fs');
 const url = require('url');
 const EventEmitter = require('events');
-const { remote } = require('electron');
 
 export var init = function () { };
-
-const downloading = new Map();
-
 
 export default DownloaderFactory;
 

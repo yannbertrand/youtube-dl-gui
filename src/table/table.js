@@ -2,7 +2,6 @@ import DownloaderFactory, { Downloader } from '../downloader/downloader';
 import Storage from '../storage/storage';
 
 const path = require('path');
-const fs = require('fs');
 const prettyBytes = require('pretty-bytes');
 const url = require('url');
 const { shell } = require('electron');
