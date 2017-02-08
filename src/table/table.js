@@ -51,7 +51,6 @@ function addStoredVideosToTable(downloaders) {
 export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   let $tr;
   let $actions;
-  let filePath;
 
   const id = DownloaderFactory.getIdFromLink(link);
   if (DownloaderFactory.has(id)) {
@@ -84,7 +83,6 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
     $actions = $tr.find('td.actions');
     downloader.on('status/update', (data) => updateActions($actions, downloader, data));
     downloader.refreshStatus();
-    filePath = downloader.path;
 
     $datatable.row.add($tr).draw(false);
     $tableParent.show();
