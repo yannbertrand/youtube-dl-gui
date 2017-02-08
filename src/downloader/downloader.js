@@ -112,7 +112,7 @@ class Downloader extends EventEmitter {
   }
 
   updateStatus(newStatus) {
-    this.emit('status/update', { oldStatus: this.status, newStatus: newStatus });
+    this.emit('status/update', { status: newStatus });
     this.status = newStatus;
   }
 
