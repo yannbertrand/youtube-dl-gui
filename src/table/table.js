@@ -1,5 +1,5 @@
 import { downloadVideo, pauseDownload } from '../downloader/downloader';
-import { getDownloads, getVideoInDownloads, removeVideoFromDownloads } from '../storage/storage';
+import { Storage } from '../storage/storage';
 
 const path = require('path');
 const fs = require('fs');
@@ -34,7 +34,7 @@ export var init = function () {
 };
 
 function getVideosFromStorage() {
-  const downloads = getDownloads();
+  const downloads = Storage.getDownloads();
   const videos = [];
   for (const id in downloads) {
     const info = downloads[id];
@@ -42,7 +42,7 @@ function getVideosFromStorage() {
       fs.statSync(info.path);
       videos.push(info);
     } catch (error) {
-      removeVideoFromDownloads(id);
+      Storage.removeVideoFromDownloads(id);
     }
   }
 
@@ -67,7 +67,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   let filePath;
 
   const id = url.parse(link, true).query.v;
-  const videoFromStorage = getVideoInDownloads(id);
+  const videoFromStorage = Storage.getVideoInDownloads(id);
   if (typeof videoFromStorage !== 'undefined') {
     $tr = $('table').find('tr#' + id);
     $actions = $tr.find('td.actions');

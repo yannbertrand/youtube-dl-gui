@@ -1,4 +1,4 @@
-import { getBaseDestination, getProxy, addVideoInDownloads, filterVideoInfoToStore } from '../storage/storage';
+import { Storage } from '../storage/storage';
 
 const youtubedl = require('youtube-dl');
 const path = require('path');
@@ -24,7 +24,7 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
     downloaded = fs.statSync(filePath).size;
   }
 
-  const baseDestination = getBaseDestination();
+  const baseDestination = Storage.getBaseDestination();
   if (! fs.existsSync(baseDestination)) {
     fs.mkdirSync(baseDestination);
   }
@@ -59,7 +59,7 @@ export var downloadVideo = function (link, onInfo, onProgress, onError, onEnd, f
     video.pipe(fs.createWriteStream(filePath, { flags: 'a' }));
 
     if (! resuming) {
-      addVideoInDownloads(info.id, filterVideoInfoToStore(info, filePath));
+      Storage.addVideoInDownloads(info.id, Storage.filterVideoInfoToStore(info, filePath));
     }
   });
 
@@ -94,7 +94,7 @@ export var pauseDownload = function (id, callback) {
 function getOptions() {
   const options = ['--format=18'];
 
-  const proxy = getProxy();
+  const proxy = Storage.getProxy();
   if(typeof proxy !== 'undefined') {
     options.push('--proxy=' + proxy);
   }

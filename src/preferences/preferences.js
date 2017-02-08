@@ -1,4 +1,4 @@
-import { getBaseDestination, setBaseDestination, getProxy, setProxy } from '../storage/storage';
+import { Storage } from '../storage/storage';
 
 const { remote } = require('electron');
 
@@ -15,25 +15,25 @@ export var init = function () {
 
 function selectBaseDestination() {
   remote.dialog.showOpenDialog(remote.BrowserWindow.getFocusedWindow(), {
-    defaultPath: getBaseDestination(),
+    defaultPath: Storage.getBaseDestination(),
     properties: ['openDirectory'],
   }, function (filePaths) {
     if (filePaths === undefined) return;
 
-    setBaseDestination(filePaths[0]);
+    Storage.setBaseDestination(filePaths[0]);
     refreshBaseDestination();
   });
 }
 
 function refreshBaseDestination() {
-  $('input#base-destination').val(getBaseDestination());
+  $('input#base-destination').val(Storage.getBaseDestination());
 }
 
 
 function updateProxy() {
-  setProxy($('input#proxy').val());
+  Storage.setProxy($('input#proxy').val());
 }
 
 function refreshProxy() {
-  $('input#proxy').val(getProxy());
+  $('input#proxy').val(Storage.getProxy());
 }
