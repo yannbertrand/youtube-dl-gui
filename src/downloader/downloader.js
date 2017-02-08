@@ -147,7 +147,7 @@ class Downloader extends EventEmitter {
     this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
     Storage.addVideoInDownloads(this.video.id, this.video);
 
-    this.updateStatus(Downloader.STATUSES.WAITING);
+    this.updateStatus(Downloader.STATUSES.DOWNLOADING);
 
     onInfo();
   }
