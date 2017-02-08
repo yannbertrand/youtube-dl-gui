@@ -1,5 +1,6 @@
 const { remote } = require('electron');
 const path       = require('path');
+const fs         = require('fs');
 const Config     = require('electron-config');
 
 const DEFAULT_BASE_DESTINATION = path.join(remote.app.getPath('videos'), 'YouTube');
@@ -44,6 +45,19 @@ export default (() => {
     hasVideoInDownloads(id) { return config.has(KEYS.DOWNLOADS + '.' + id); }
     getVideoInDownloads(id) { return config.get(KEYS.DOWNLOADS + '.' + id); }
     removeVideoFromDownloads(id) { config.delete(KEYS.DOWNLOADS + '.' + id); }
+
+    deleteNotFoundDownloads() {
+      const downloads = this.getDownloads();
+      for (const id in downloads) {
+        const info = downloads[id];
+        try {
+          fs.statSync(info.path);
+        } catch (error) {
+          console.error(error);
+          this.removeVideoFromDownloads(id);
+        }
+      }
+    }
 
     addVideoInDownloads(id, info) {
       if (this.hasVideoInDownloads(id)) {
