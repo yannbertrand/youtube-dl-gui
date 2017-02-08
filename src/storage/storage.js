@@ -53,7 +53,6 @@ export default (() => {
         try {
           fs.statSync(info.path);
         } catch (error) {
-          console.error(error);
           this.removeVideoFromDownloads(id);
         }
       }
