@@ -35,6 +35,8 @@ export default (() => {
       return instance;
     }
 
+    clear() { config.clear(); }
+
     getBaseDestination() { return config.get(KEYS.BASE_DESTINATION); }
     setBaseDestination(baseDestination) { config.set(KEYS.BASE_DESTINATION, baseDestination); }
 
