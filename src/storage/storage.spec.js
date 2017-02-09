@@ -1,10 +1,10 @@
 import { expect } from 'chai';
-import * as Storage from './storage';
+import Storage, { init } from './storage';
 
 describe('Storage', function () {
 
   beforeEach(function () {
-    Storage.init();
+    init();
   });
 
   afterEach(function () {
