@@ -174,13 +174,15 @@ class Downloader extends EventEmitter {
   }
 
   onInfo(info, onInfo) {
-    this.video = this.filterVideoInfoToStore(info);
+    this.filterVideoInfoToStore(info, (video) => {
+      this.video = video;
 
-    this.download.pipe(fs.createWriteStream(this.video.filePath, { flags: 'a' }));
+      this.download.pipe(fs.createWriteStream(this.video.filePath, { flags: 'a' }));
 
-    this.updateStatus(Downloader.STATUSES.DOWNLOADING);
+      this.updateStatus(Downloader.STATUSES.DOWNLOADING);
 
-    onInfo();
+      onInfo();
+    });
   }
 
   onProgress(chunk, onProgress) {
@@ -207,19 +209,28 @@ class Downloader extends EventEmitter {
     this.updateStatus(Downloader.STATUSES.PAUSED);
   }
 
-  filterVideoInfoToStore(video) {
-    return {
+  filterVideoInfoToStore(info, callback) {
+    const video = {
       id: this.video.id,
-      title: video.title,
-      uploader: video.uploader,
-      duration: video.duration,
-      size: this.video.size || video.size,
-      formatId: video.format_id,
-      uploadDate: video.upload_date,
+      title: info.title,
+      uploader: info.uploader,
+      duration: info.duration,
+      size: this.video.size || info.size,
+      formatId: info.format_id,
+      uploadDate: info.upload_date,
       baseDestination: this.video.baseDestination,
-      filePath: this.video.filePath || this.getFilePath(video),
+      filePath: this.video.filePath,
       launchedAt: new Date(),
     };
+
+    if (typeof video.filePath === 'undefined') {
+      return this.getFilePath(info, (filePath) => {
+        video.filePath = filePath;
+        return callback(video);
+      });
+    }
+
+    callback(video);
   }
 
   getDownloadOptions() {
@@ -232,16 +243,17 @@ class Downloader extends EventEmitter {
     return options;
   }
 
-  getFilePath(video) {
-    const destination = this.getDestination(video);
-    if (video.playlist_index === null || video.playlist_index === 'NA') {
-      return path.join(destination, video._filename);
-    }
+  getFilePath(video, callback) {
+    this.getDestination(video, (destination) => {
+      if (video.playlist_index === null || video.playlist_index === 'NA') {
+        return callback(path.join(destination, video._filename));
+      }
 
-    return path.join(destination, video.playlist_index + ' - ' + video._filename);
+      callback(path.join(destination, video.playlist_index + ' - ' + video._filename));
+    });
   }
 
-  getDestination(video) {
+  getDestination(video, callback) {
     let destination = path.join(this.video.baseDestination, video.uploader);
 
     const isVideoInPlaylist = video.playlist !== null && video.playlist !== 'NA';
@@ -249,9 +261,7 @@ class Downloader extends EventEmitter {
       destination = path.join(destination, video.playlist);
     }
 
-    mkdirp(destination);
-
-    return destination;
+    mkdirp(destination, () => callback(destination));
   }
 
 };
