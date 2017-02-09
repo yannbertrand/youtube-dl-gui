@@ -85,7 +85,6 @@ class Downloader extends EventEmitter {
 
     this.download = null;
     this.downloaded = 0;
-    this.total = 0;
 
     if (typeof videoOrId === 'string') {
       this.video = { id: videoOrId };
@@ -148,7 +147,6 @@ class Downloader extends EventEmitter {
   onStartInfo(info, onInfo) {
     console.log('Beginning download ' + this.video.id);
 
-    this.total = info.size;
     this.video = this.filterVideoInfoToStore(info, this.getFilePath(info));
 
     this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
@@ -172,7 +170,6 @@ class Downloader extends EventEmitter {
   onResumeInfo(info, onInfo) {
     console.log('Resuming download ' + this.video.id);
 
-    this.total = info.size + this.downloaded;
     this.video = this.filterVideoInfoToStore(info);
 
     this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
@@ -186,7 +183,7 @@ class Downloader extends EventEmitter {
     this.downloaded += chunk.length;
 
     if (this.video.size > 0) {
-      onProgress((this.downloaded / this.total) * 100);
+      onProgress((this.downloaded / this.video.size) * 100);
     }
   }
 
