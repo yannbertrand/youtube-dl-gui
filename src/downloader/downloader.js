@@ -212,7 +212,7 @@ class Downloader extends EventEmitter {
       duration: info.duration,
       size: this.video.size || info.size,
       formatId: info.format_id,
-      uploadedDate: info.uploaded_date,
+      uploadDate: info.upload_date,
       path: this.video.path || filePath,
       launchedAt: new Date(),
     };
