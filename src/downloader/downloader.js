@@ -3,6 +3,7 @@ import Storage from '../storage/storage';
 const youtubedl = require('youtube-dl');
 const path = require('path');
 const fs = require('fs');
+const mkdirp = require('mkdirp');
 const url = require('url');
 const EventEmitter = require('events');
 
@@ -31,7 +32,8 @@ const DownloaderFactory = (() => {
       const videos = Storage.getDownloads();
 
       for (const id in videos) {
-        const downloader = new Downloader(videos[id]);
+        const downloader = new Downloader(videos[id], Storage.getProxy());
+        downloader.on('status/update', this.addVideoInDownloadsIfNecessary);
         downloader.pause();
         downloader.checkStatus();
 
@@ -54,12 +56,25 @@ const DownloaderFactory = (() => {
         return onError('Already downloading');
       }
 
-      const downloader = new Downloader(id);
+      const downloader = new Downloader(id, Storage.getProxy());
+      downloader.on('status/update', this.addVideoInDownloadsIfNecessary);
       downloader.start(onInfo, onProgress, onError, onEnd);
 
       this.downloaders.set(id, downloader);
 
       return downloader;
+    }
+
+    addVideoInDownloadsIfNecessary(newStatus) {
+      if (newStatus !== Downloader.STATUSES.DOWNLOADING) {
+        return;
+      }
+
+      if (Storage.hasVideoInDownloads(this.downloader.video.id)) {
+        return;
+      }
+
+      Storage.addVideoInDownloads(this.downloader.video.id, this.downloader.video);
     }
 
     getIdFromLink(link) {
@@ -80,14 +95,18 @@ export { Downloader };
 
 class Downloader extends EventEmitter {
 
-  constructor(videoOrId) {
+  constructor(videoOrId, proxy = null, baseDestination = Storage.getBaseDestination()) {
     super();
 
     this.download = null;
+    this.proxy = proxy;
     this.downloaded = 0;
 
     if (typeof videoOrId === 'string') {
-      this.video = { id: videoOrId };
+      this.video = {
+        id: videoOrId,
+        baseDestination: baseDestination,
+      };
     } else {
       this.video = videoOrId;
     }
@@ -123,9 +142,9 @@ class Downloader extends EventEmitter {
   }
 
   getProgress() {
-    if (typeof this.video.path === 'undefined') { return 0.0; }
+    if (typeof this.video.filePath === 'undefined') { return 0.0; }
 
-    const fileSize = fs.statSync(this.video.path).size;
+    const fileSize = fs.statSync(this.video.filePath).size;
     return (fileSize / this.video.size) * 100.0;
   }
 
@@ -133,7 +152,7 @@ class Downloader extends EventEmitter {
     this.download = youtubedl(
       DownloaderFactory.getLinkFromId(this.video.id),
       this.getDownloadOptions(),
-      { start: this.downloaded, cwd: this.getBaseDestination() }
+      { start: this.downloaded, cwd: this.baseDestination }
     );
 
     this.updateStatus(Downloader.STATUSES.WAITING);
@@ -147,10 +166,9 @@ class Downloader extends EventEmitter {
   onStartInfo(info, onInfo) {
     console.log('Beginning download ' + this.video.id);
 
-    this.video = this.filterVideoInfoToStore(info, this.getFilePath(info));
+    this.video = this.filterVideoInfoToStore(info);
 
-    this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
-    Storage.addVideoInDownloads(this.video.id, this.video);
+    this.download.pipe(fs.createWriteStream(this.video.filePath, { flags: 'a' }));
 
     this.updateStatus(Downloader.STATUSES.DOWNLOADING);
 
@@ -159,7 +177,7 @@ class Downloader extends EventEmitter {
 
   resume(onInfo, onProgress, onError, onEnd) {
     try {
-      this.downloaded = fs.statSync(this.video.path).size;
+      this.downloaded = fs.statSync(this.video.filePath).size;
     } catch (error) {
       return onError(error);
     }
@@ -172,7 +190,7 @@ class Downloader extends EventEmitter {
 
     this.video = this.filterVideoInfoToStore(info);
 
-    this.download.pipe(fs.createWriteStream(this.video.path, { flags: 'a' }));
+    this.download.pipe(fs.createWriteStream(this.video.filePath, { flags: 'a' }));
 
     this.updateStatus(Downloader.STATUSES.DOWNLOADING);
 
@@ -204,16 +222,17 @@ class Downloader extends EventEmitter {
     this.updateStatus(Downloader.STATUSES.PAUSED);
   }
 
-  filterVideoInfoToStore(info, filePath = '') {
+  filterVideoInfoToStore(video) {
     return {
       id: this.video.id,
-      title: info.title,
-      uploader: info.uploader,
-      duration: info.duration,
-      size: this.video.size || info.size,
-      formatId: info.format_id,
-      uploadDate: info.upload_date,
-      path: this.video.path || filePath,
+      title: video.title,
+      uploader: video.uploader,
+      duration: video.duration,
+      size: this.video.size || video.size,
+      formatId: video.format_id,
+      uploadDate: video.upload_date,
+      baseDestination: this.video.baseDestination,
+      filePath: this.video.filePath || this.getFilePath(video),
       launchedAt: new Date(),
     };
   }
@@ -221,38 +240,11 @@ class Downloader extends EventEmitter {
   getDownloadOptions() {
     const options = ['--format=18'];
 
-    const proxy = Storage.getProxy();
-    if(typeof proxy !== 'undefined') {
-      options.push('--proxy=' + proxy);
+    if(this.proxy !== null) {
+      options.push('--proxy=' + this.proxy);
     }
 
     return options;
-  }
-
-  getBaseDestination() {
-    const baseDestination = Storage.getBaseDestination();
-    if (! fs.existsSync(baseDestination)) {
-      fs.mkdirSync(baseDestination);
-    }
-
-    return baseDestination;
-  }
-
-  getDestination(video) {
-    const destination = this.getCompleteDestination(this.getBaseDestination(), video);
-    if (! fs.existsSync(destination)) {
-      fs.mkdirSync(destination);
-    }
-
-    return destination;
-  }
-
-  getCompleteDestination(baseDestination, info) {
-    if (info.playlist === null || info.playlist === 'NA') {
-      return path.join(baseDestination, info.uploader);
-    }
-
-    return path.join(baseDestination, info.uploader, info.playlist);
   }
 
   getFilePath(video) {
@@ -262,6 +254,19 @@ class Downloader extends EventEmitter {
     }
 
     return path.join(destination, video.playlist_index + ' - ' + video._filename);
+  }
+
+  getDestination(video) {
+    let destination = path.join(this.video.baseDestination, video.uploader);
+
+    const isVideoInPlaylist = video.playlist !== null && video.playlist !== 'NA';
+    if (isVideoInPlaylist) {
+      destination = path.join(destination, video.playlist);
+    }
+
+    mkdirp(destination);
+
+    return destination;
   }
 
 };

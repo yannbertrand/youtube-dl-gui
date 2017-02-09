@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import Storage, { init as initStorage } from '../storage/storage';
 import DownloaderFactory, { Downloader, init } from './downloader';
 
+const path = require('path');
+
 describe('Downloader', function () {
   this.timeout(0);
 
@@ -14,14 +16,20 @@ describe('Downloader', function () {
   });
 
   it('start', function (done) {
-    const downloader = new Downloader('jNQXAC9IVRw');
+    const baseDestination = path.join(__dirname, 'destination');
+    const downloader = new Downloader('jNQXAC9IVRw', null, baseDestination);
+
     expect(downloader.download).to.be.null;
     expect(downloader.downloaded).to.equal(0);
-    expect(downloader.video).to.be.an('object').and.to.deep.equal({ 'id': 'jNQXAC9IVRw' });
     expect(downloader.status).to.equal(Downloader.STATUSES.INIT);
     expect(downloader.progress).to.equal(0);
 
+    expect(downloader.video).to.be.an('object');
+    expect(downloader.video).to.have.property('id', 'jNQXAC9IVRw');
+    expect(downloader.video).to.have.property('baseDestination', baseDestination);
+
     downloader.start(onInfo, onProgress, onError, onEnd);
+
     expect(downloader.status).to.equal(Downloader.STATUSES.WAITING);
 
     function onInfo() {
