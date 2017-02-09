@@ -17,7 +17,7 @@ describe('Downloader', function () {
 
   it('start', function (done) {
     const baseDestination = path.join(__dirname, 'destination');
-    const downloader = new Downloader('jNQXAC9IVRw', null, baseDestination);
+    const downloader = new Downloader('jNQXAC9IVRw', baseDestination, null);
 
     expect(downloader.download).to.be.null;
     expect(downloader.downloaded).to.equal(0);

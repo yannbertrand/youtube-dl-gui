@@ -32,7 +32,7 @@ const DownloaderFactory = (() => {
       const videos = Storage.getDownloads();
 
       for (const id in videos) {
-        const downloader = new Downloader(videos[id], Storage.getProxy());
+        const downloader = new Downloader(videos[id]);
         downloader.on('status/update', this.addVideoInDownloadsIfNecessary);
         downloader.pause();
         downloader.checkStatus();
@@ -56,7 +56,7 @@ const DownloaderFactory = (() => {
         return onError('Already downloading');
       }
 
-      const downloader = new Downloader(id, Storage.getProxy());
+      const downloader = new Downloader(id);
       downloader.on('status/update', this.addVideoInDownloadsIfNecessary);
       downloader.start(onInfo, onProgress, onError, onEnd);
 
@@ -95,7 +95,7 @@ export { Downloader };
 
 class Downloader extends EventEmitter {
 
-  constructor(videoOrId, proxy = null, baseDestination = Storage.getBaseDestination()) {
+  constructor(videoOrId, baseDestination = Storage.getBaseDestination(), proxy = Storage.getProxy()) {
     super();
 
     this.download = null;
