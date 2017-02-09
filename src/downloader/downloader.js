@@ -157,22 +157,10 @@ class Downloader extends EventEmitter {
 
     this.updateStatus(Downloader.STATUSES.WAITING);
 
-    this.download.on('info', (info) => customOnInfo.call(this, info, onInfo));
+    this.download.on('info', (info) => this.onInfo(info, onInfo));
     this.download.on('data', (chunk) => this.onProgress(chunk, onProgress));
     this.download.on('error', (error) => this.onError(error, onError));
     this.download.on('end', () => this.onEnd(onEnd));
-  }
-
-  onStartInfo(info, onInfo) {
-    console.log('Beginning download ' + this.video.id);
-
-    this.video = this.filterVideoInfoToStore(info);
-
-    this.download.pipe(fs.createWriteStream(this.video.filePath, { flags: 'a' }));
-
-    this.updateStatus(Downloader.STATUSES.DOWNLOADING);
-
-    onInfo();
   }
 
   resume(onInfo, onProgress, onError, onEnd) {
@@ -185,9 +173,7 @@ class Downloader extends EventEmitter {
     this.start(onInfo, onProgress, onError, onEnd, this.onResumeInfo);
   }
 
-  onResumeInfo(info, onInfo) {
-    console.log('Resuming download ' + this.video.id);
-
+  onInfo(info, onInfo) {
     this.video = this.filterVideoInfoToStore(info);
 
     this.download.pipe(fs.createWriteStream(this.video.filePath, { flags: 'a' }));
@@ -211,7 +197,6 @@ class Downloader extends EventEmitter {
   }
 
   onEnd(onEnd) {
-    console.log('finished downloading!');
     this.updateStatus(Downloader.STATUSES.DONE);
     onEnd();
   }
