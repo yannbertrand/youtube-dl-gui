@@ -149,18 +149,20 @@ class Downloader extends EventEmitter {
   }
 
   start(onInfo, onProgress, onError, onEnd, customOnInfo = this.onStartInfo) {
-    this.download = youtubedl(
-      DownloaderFactory.getLinkFromId(this.video.id),
-      this.getDownloadOptions(),
-      { start: this.downloaded, cwd: this.baseDestination }
-    );
-
     this.updateStatus(Downloader.STATUSES.WAITING);
 
-    this.download.on('info', (info) => this.onInfo(info, onInfo));
-    this.download.on('data', (chunk) => this.onProgress(chunk, onProgress));
-    this.download.on('error', (error) => this.onError(error, onError));
-    this.download.on('end', () => this.onEnd(onEnd));
+    mkdirp(this.video.baseDestination, () => {
+      this.download = youtubedl(
+        DownloaderFactory.getLinkFromId(this.video.id),
+        this.getDownloadOptions(),
+        { start: this.downloaded, cwd: this.video.baseDestination }
+      );
+
+      this.download.on('info', (info) => this.onInfo(info, onInfo));
+      this.download.on('data', (chunk) => this.onProgress(chunk, onProgress));
+      this.download.on('error', (error) => this.onError(error, onError));
+      this.download.on('end', () => this.onEnd(onEnd));
+    });
   }
 
   resume(onInfo, onProgress, onError, onEnd) {
