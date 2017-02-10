@@ -6,6 +6,7 @@ const path = require('path');
 
 describe('Downloader', function () {
   this.timeout(0);
+  this.slow(4000);
 
   beforeEach(function () {
     initStorage();
