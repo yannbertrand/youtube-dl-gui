@@ -148,7 +148,7 @@ class Downloader extends EventEmitter {
     return (fileSize / this.video.size) * 100.0;
   }
 
-  start(onInfo, onProgress, onError, onEnd, customOnInfo = this.onStartInfo) {
+  start(onInfo, onProgress, onError, onEnd) {
     this.updateStatus(Downloader.STATUSES.WAITING);
 
     mkdirp(this.video.baseDestination, () => {
