@@ -228,7 +228,7 @@ class Downloader extends EventEmitter {
     if (typeof video.filePath === 'undefined') {
       return this.getFilePath(info, (filePath) => {
         video.filePath = filePath;
-        return callback(video);
+        callback(video);
       });
     }
 
