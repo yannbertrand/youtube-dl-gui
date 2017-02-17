@@ -1,15 +1,7 @@
 import { expect } from 'chai';
-import Storage, { init } from './storage';
+import Storage from './storage';
 
 describe('Storage', function () {
-
-  beforeEach(function () {
-    init();
-  });
-
-  afterEach(function () {
-    Storage.clear();
-  });
 
   it('downloads', function () {
     const video = { title: '[10 DAYS / 10 SONGS] Episode 06 - Enregistrement "Ce Matin"', uploader: 'pvnova' };

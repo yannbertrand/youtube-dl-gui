@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import Storage, { init as initStorage } from '../storage/storage';
+import Storage from '../storage/storage';
 import DownloaderFactory, { Downloader, init } from './downloader';
 
 const path = require('path');
@@ -7,14 +7,6 @@ const path = require('path');
 describe('Downloader', function () {
   this.timeout(0);
   this.slow(4000);
-
-  beforeEach(function () {
-    initStorage();
-  });
-
-  afterEach(function () {
-    Storage.clear();
-  });
 
   it('start', function (done) {
     const baseDestination = path.join(__dirname, 'destination');

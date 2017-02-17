@@ -11,19 +11,6 @@ const KEYS = {
   DOWNLOADS: 'downloads',
 };
 
-let config;
-export var init = function () {
-  config = new Config();
-
-  if (! config.has(KEYS.BASE_DESTINATION)) {
-    config.set(KEYS.BASE_DESTINATION, DEFAULT_BASE_DESTINATION);
-  }
-
-  if (! config.has(KEYS.DOWNLOADS)) {
-    config.set(KEYS.DOWNLOADS, {});
-  }
-};
-
 export default (() => {
   let instance = null;
 
@@ -32,21 +19,31 @@ export default (() => {
     constructor() {
       if (! instance) { instance = this; }
 
+      this.config = new Config();
+
+      if (! this.config.has(KEYS.BASE_DESTINATION)) {
+        this.config.set(KEYS.BASE_DESTINATION, DEFAULT_BASE_DESTINATION);
+      }
+
+      if (! this.config.has(KEYS.DOWNLOADS)) {
+        this.config.set(KEYS.DOWNLOADS, {});
+      }
+
       return instance;
     }
 
-    clear() { config.clear(); }
+    clear() { this.config.clear(); }
 
-    getBaseDestination() { return config.get(KEYS.BASE_DESTINATION); }
-    setBaseDestination(baseDestination) { config.set(KEYS.BASE_DESTINATION, baseDestination); }
+    getBaseDestination() { return this.config.get(KEYS.BASE_DESTINATION); }
+    setBaseDestination(baseDestination) { this.config.set(KEYS.BASE_DESTINATION, baseDestination); }
 
-    getProxy() { return config.get(KEYS.PROXY); }
-    setProxy(proxy) { config.set(KEYS.PROXY, proxy); }
+    getProxy() { return this.config.get(KEYS.PROXY); }
+    setProxy(proxy) { this.config.set(KEYS.PROXY, proxy); }
 
-    getDownloads() { return config.get(KEYS.DOWNLOADS); }
-    hasVideoInDownloads(id) { return config.has(KEYS.DOWNLOADS + '.' + id); }
-    getVideoInDownloads(id) { return config.get(KEYS.DOWNLOADS + '.' + id); }
-    removeVideoFromDownloads(id) { config.delete(KEYS.DOWNLOADS + '.' + id); }
+    getDownloads() { return this.config.get(KEYS.DOWNLOADS); }
+    hasVideoInDownloads(id) { return this.config.has(KEYS.DOWNLOADS + '.' + id); }
+    getVideoInDownloads(id) { return this.config.get(KEYS.DOWNLOADS + '.' + id); }
+    removeVideoFromDownloads(id) { this.config.delete(KEYS.DOWNLOADS + '.' + id); }
 
     deleteNotFoundDownloads() {
       const downloads = this.getDownloads();
@@ -65,24 +62,10 @@ export default (() => {
         throw new Error('Already in list');
       }
 
-      const downloads = config.get(KEYS.DOWNLOADS);
+      const downloads = this.config.get(KEYS.DOWNLOADS);
       downloads[id] = info;
 
-      config.set(KEYS.DOWNLOADS, downloads);
-    }
-
-    filterVideoInfoToStore(info, filePath) {
-      return {
-        id: info.id,
-        title: info.title,
-        uploader: info.uploader,
-        duration: info.duration,
-        size: info.size,
-        formatId: info.format_id,
-        uploadedDate: info.uploaded_date,
-        path: filePath,
-        launchedAt: new Date(),
-      };
+      this.config.set(KEYS.DOWNLOADS, downloads);
     }
   };
 
