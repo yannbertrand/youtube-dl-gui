@@ -238,7 +238,7 @@ class Downloader extends EventEmitter {
   getDownloadOptions() {
     const options = ['--format=18'];
 
-    if(this.proxy !== null) {
+    if (this.proxy) {
       options.push('--proxy=' + this.proxy);
     }
 
