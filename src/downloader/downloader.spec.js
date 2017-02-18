@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import Storage from '../storage/storage';
 import DownloaderFactory, { Downloader, init } from './downloader';
+import rimraf from 'rimraf';
 
 const path = require('path');
 
@@ -8,8 +9,13 @@ describe('Downloader', function () {
   this.timeout(0);
   this.slow(4000);
 
+  const baseDestination = path.join(__dirname, 'destination');
+
+  after(function (done) {
+    rimraf(baseDestination, done);
+  });
+
   it('start', function (done) {
-    const baseDestination = path.join(__dirname, 'destination');
     const downloader = new Downloader('jNQXAC9IVRw', baseDestination, null);
 
     expect(downloader.download).to.be.null;
