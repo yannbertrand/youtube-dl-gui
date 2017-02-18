@@ -33,7 +33,7 @@ const DownloaderFactory = (() => {
 
       for (const id in videos) {
         const downloader = new Downloader(videos[id]);
-        downloader.on('status/update', this.addVideoInDownloadsIfNecessary);
+        downloader.on('status/update', (newStatus) => { this.addVideoInDownloadsIfNecessary(downloader, newStatus) });
         downloader.pause();
         downloader.checkStatus();
 
@@ -57,7 +57,7 @@ const DownloaderFactory = (() => {
       }
 
       const downloader = new Downloader(id);
-      downloader.on('status/update', this.addVideoInDownloadsIfNecessary);
+      downloader.on('status/update', (newStatus) => { this.addVideoInDownloadsIfNecessary(downloader, newStatus) });
       downloader.start(onInfo, onProgress, onError, onEnd);
 
       this.downloaders.set(id, downloader);
@@ -65,16 +65,16 @@ const DownloaderFactory = (() => {
       return downloader;
     }
 
-    addVideoInDownloadsIfNecessary(newStatus) {
+    addVideoInDownloadsIfNecessary(downloader, newStatus) {
       if (newStatus !== Downloader.STATUSES.DOWNLOADING) {
         return;
       }
 
-      if (Storage.hasVideoInDownloads(this.downloader.video.id)) {
+      if (Storage.hasVideoInDownloads(downloader.video.id)) {
         return;
       }
 
-      Storage.addVideoInDownloads(this.downloader.video.id, this.downloader.video);
+      Storage.addVideoInDownloads(downloader.video.id, downloader.video);
     }
 
     getIdFromLink(link) {
@@ -127,7 +127,7 @@ class Downloader extends EventEmitter {
   }
 
   updateStatus(newStatus) {
-    this.emit('status/update', { status: newStatus });
+    this.emit('status/update', newStatus);
     this.status = newStatus;
   }
 

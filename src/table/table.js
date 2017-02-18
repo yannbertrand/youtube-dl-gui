@@ -40,7 +40,7 @@ function addStoredVideosToTable(downloaders) {
     moveProgressIndicator($tr, percentage);
 
     const $actions = $tr.find('td.actions');
-    downloader.on('status/update', (data) => updateActions($actions, downloader, data));
+    downloader.on('status/update', (newStatus) => updateActions($actions, downloader, newStatus));
     downloader.refreshStatus();
 
     $datatable.row.add($tr).draw(false);
@@ -62,7 +62,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
       return onSuccess();
     }
 
-    downloader.on('status/update', (data) => updateActions($actions, downloader, data));
+    downloader.on('status/update', (newStatus) => updateActions($actions, downloader, newStatus));
     downloader.refreshStatus();
 
     return downloader.resume(onSuccess, onProgress, onFail, () => {});
@@ -73,7 +73,7 @@ export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
   function onStartDownloading() {
     $tr = $(videoToHTML(downloader.video));
     $actions = $tr.find('td.actions');
-    downloader.on('status/update', (data) => updateActions($actions, downloader, data));
+    downloader.on('status/update', (newStatus) => updateActions($actions, downloader, newStatus));
     downloader.refreshStatus();
 
     $datatable.row.add($tr).draw(false);
@@ -107,8 +107,8 @@ function videoToHTML(video, percentage = 0) {
         '</tr>';
 }
 
-function updateActions($actions, downloader, data) {
-  switch (data.status) {
+function updateActions($actions, downloader, newStatus) {
+  switch (newStatus) {
     case Downloader.STATUSES.WAITING:
       return disableActions($actions);
     case Downloader.STATUSES.DOWNLOADING:
