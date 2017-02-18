@@ -6,7 +6,6 @@ import os from 'os'; // native node.js module
 import { remote } from 'electron'; // native electron module
 import jetpack from 'fs-jetpack'; // module loaded from npm
 import { init as initPreferences } from './preferences/preferences';
-import { init as initStorage } from './storage/storage';
 import env from './env';
 
 global.Tether = require('tether');
@@ -27,6 +26,5 @@ var appDir = jetpack.cwd(app.getAppPath());
 console.log('The author of this app is:', appDir.read('package.json', 'json').author);
 
 document.addEventListener('DOMContentLoaded', function () {
-    initStorage();
     initPreferences();
 });
