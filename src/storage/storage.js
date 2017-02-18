@@ -50,7 +50,7 @@ export default (() => {
       for (const id in downloads) {
         const info = downloads[id];
         try {
-          fs.statSync(info.path);
+          fs.statSync(info.filePath);
         } catch (error) {
           this.removeVideoFromDownloads(id);
         }
