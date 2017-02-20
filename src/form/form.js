@@ -1,4 +1,4 @@
-import { downloadVideoAndUpdateTable } from '../table/table';
+import DownloadsTable from '../table/table';
 
 const isYouTubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//;
 
@@ -16,6 +16,8 @@ export var init = function () {
         }
     });
 
+    const downloadsTable = new DownloadsTable();
+
     $form.on('submit', function (event) {
         event.preventDefault();
 
@@ -27,17 +29,17 @@ export var init = function () {
         $icon.addClass('fa-spin');
         $submit.prop('disabled', true);
 
-        downloadVideoAndUpdateTable(link, onError, onSuccess);
-
-        function onError(error) {
-            console.log(error);
-            $inputGroup.addClass('has-danger');
-            resetSubmitButton();
-        }
+        downloadsTable.downloadVideo(link, onSuccess, onError);
 
         function onSuccess() {
             $input.val('');
             $body.removeClass('center-vertical');
+            resetSubmitButton();
+        }
+
+        function onError(error) {
+            console.log(error);
+            $inputGroup.addClass('has-danger');
             resetSubmitButton();
         }
 
