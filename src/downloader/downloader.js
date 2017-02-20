@@ -206,7 +206,10 @@ class Downloader extends EventEmitter {
   }
 
   pause() {
-    if (this.download !== null) { this.download.pause(); }
+    if (this.download !== null) {
+      this.download.pause();
+      this.download.unpipe();
+    }
 
     this.updateStatus(Downloader.STATUSES.PAUSED);
   }
