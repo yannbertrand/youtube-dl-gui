@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import Storage from '../storage/storage';
 import DownloaderFactory, { Downloader, init } from './downloader';
 import rimraf from 'rimraf';
@@ -7,7 +7,7 @@ const path = require('path');
 
 describe('Downloader', function () {
   this.timeout(0);
-  this.slow(4000);
+  this.slow(10000);
 
   const baseDestination = path.join(__dirname, 'destination');
 
@@ -42,20 +42,31 @@ describe('Downloader', function () {
       expect(downloader.video).to.have.property('title', 'Me at the zoo');
       expect(downloader.video).to.have.property('uploadDate', '20050423');
       expect(downloader.video).to.have.property('uploader', 'jawed');
-
-      done();
     }
 
+    let currentPercentage = 0;
+    let hasBeenPaused = false;
     function onProgress(percentage) {
+      expect(percentage).to.be.at.least(currentPercentage);
 
+      if (percentage > 1 && ! hasBeenPaused) {
+        downloader.pause();
+        expect(downloader.status).to.equal(Downloader.STATUSES.PAUSED);
+        hasBeenPaused = true;
+
+        downloader.resume(onInfo, onProgress, onError, onEnd);
+      }
+
+      currentPercentage = percentage;
     }
 
-    function onError() {
-
+    function onError(error) {
+      done(error);
     }
 
     function onEnd() {
-
+      expect(downloader.status).to.equal(Downloader.STATUSES.DONE);
+      done();
     }
   });
 
