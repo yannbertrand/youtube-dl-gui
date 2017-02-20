@@ -172,7 +172,7 @@ class Downloader extends EventEmitter {
       return onError(error);
     }
 
-    this.start(onInfo, onProgress, onError, onEnd, this.onResumeInfo);
+    this.start(onInfo, onProgress, onError, onEnd);
   }
 
   onInfo(info, onInfo) {
