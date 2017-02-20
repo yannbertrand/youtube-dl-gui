@@ -1,4 +1,4 @@
-import DownloaderFactory, { Downloader } from '../downloader/downloader';
+import DownloadsManager, { Downloader } from '../downloader/downloader';
 import Storage from '../storage/storage';
 
 const path = require('path');
@@ -27,7 +27,7 @@ class DownloadsTable {
   }
 
   initDataFromStorage() {
-    const downloaders = DownloaderFactory.initDownloadersFromStorage();
+    const downloaders = DownloadsManager.initDownloadersFromStorage();
     if (downloaders.size === 0) {
       return;
     }
@@ -47,7 +47,7 @@ class DownloadsTable {
   }
 
   downloadVideo(link, onSuccess, onFail) {
-    const id = DownloaderFactory.getIdFromLink(link);
+    const id = DownloadsManager.getIdFromLink(link);
 
     if (this.rows.has(id)) {
       const downloadRow = this.rows.get(id);
@@ -92,7 +92,7 @@ class DownloadRow {
   }
 
   download(onSuccess, onFail) {
-    this.downloader = DownloaderFactory.start(
+    this.downloader = DownloadsManager.start(
       this.id,
       () => this.onStartDownloading(onSuccess),
       this.onProgress.bind(this),
@@ -107,7 +107,7 @@ class DownloadRow {
       return onSuccess();
     }
 
-    DownloaderFactory.resume(
+    DownloadsManager.resume(
       this.id,
       onSuccess,
       this.onProgress.bind(this),
@@ -172,7 +172,7 @@ class DownloadRow {
                 '<span class="fa fa-pause"></span>' +
               '</button>').on('click', () => {
         this.disableActions();
-        DownloaderFactory.pause(this.id);
+        DownloadsManager.pause(this.id);
     });
   }
 

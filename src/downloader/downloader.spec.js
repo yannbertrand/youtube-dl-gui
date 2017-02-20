@@ -1,6 +1,6 @@
 import { expect, assert } from 'chai';
 import Storage from '../storage/storage';
-import DownloaderFactory, { Downloader, init } from './downloader';
+import { Downloader } from './downloader';
 import rimraf from 'rimraf';
 
 const path = require('path');

@@ -9,13 +9,13 @@ const EventEmitter = require('events');
 
 export var init = function () { };
 
-export default DownloaderFactory;
+export default DownloadsManager;
 
-const DownloaderFactory = (() => {
+const DownloadsManager = (() => {
 
   let instance;
 
-  class DownloaderFactory {
+  class DownloadsManager {
 
     constructor() {
       if (! instance) {
@@ -113,7 +113,7 @@ const DownloaderFactory = (() => {
 
   }
 
-  return new DownloaderFactory();
+  return new DownloadsManager();
 
 })();
 
@@ -179,7 +179,7 @@ class Downloader extends EventEmitter {
 
     mkdirp(this.video.baseDestination, () => {
       this.download = youtubedl(
-        DownloaderFactory.getLinkFromId(this.video.id),
+        DownloadsManager.getLinkFromId(this.video.id),
         this.getDownloadOptions(),
         { start: this.downloaded, cwd: this.video.baseDestination }
       );
