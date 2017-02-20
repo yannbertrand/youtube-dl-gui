@@ -65,6 +65,32 @@ const DownloaderFactory = (() => {
       return downloader;
     }
 
+    resume(id, onInfo, onProgress, onError, onEnd) {
+      if (! this.downloaders.has(id)) {
+        return onError('Not in downloads list');
+      }
+
+      const downloader = this.downloaders.get(id);
+      if (downloader.status !== Downloader.STATUSES.PAUSED) {
+        return onError('Not paused');
+      }
+
+      downloader.resume(onInfo, onProgress, onError, onEnd);
+    }
+
+    pause(id) {
+      if (! this.downloaders.has(id)) {
+        return onError('Not in downloads list');
+      }
+
+      const downloader = this.downloaders.get(id);
+      if (downloader.status !== Downloader.STATUSES.DOWNLOADING) {
+        return onError('Not downloading');
+      }
+
+      downloader.pause();
+    }
+
     addVideoInDownloadsIfNecessary(downloader, newStatus) {
       if (newStatus !== Downloader.STATUSES.DOWNLOADING) {
         return;
