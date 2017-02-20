@@ -6,156 +6,201 @@ const prettyBytes = require('pretty-bytes');
 const url = require('url');
 const { shell } = require('electron');
 
-let $datatable;
-let $tableParent;
+export default DownloadsTable;
 
-export var init = function () {
-  const $table = $('table');
-  $tableParent = $table.parent();
-  $tableParent.hide();
+class DownloadsTable {
 
-  $datatable = $('table').DataTable({
-    info: false,
-    paging: false,
-    autoWidth: false,
-  });
+  constructor() {
+    this.$table = $('table');
+    this.$tableParent = this.$table.parent();
+    this.$tableParent.hide();
 
-  const downloaders = DownloaderFactory.initDownloadersFromStorage();
-  if (downloaders.size === 0) {
-    return;
+    this.$datatable = this.$table.DataTable({
+      info: false,
+      paging: false,
+      autoWidth: false,
+    });
+
+    this.rows = new Map();
+
+    this.initDataFromStorage();
   }
 
-  $('body').removeClass('center-vertical');
+  initDataFromStorage() {
+    const downloaders = DownloaderFactory.initDownloadersFromStorage();
+    if (downloaders.size === 0) {
+      return;
+    }
 
-  addStoredVideosToTable(downloaders);
+    $('body').removeClass('center-vertical');
 
-  $tableParent.show();
-};
+    this.addStoredVideos(downloaders);
 
-function addStoredVideosToTable(downloaders) {
-  for (const [id, downloader] of downloaders.entries()) {
-    const percentage = downloader.getProgress();
-
-    const $tr = $(videoToHTML(downloader.video, percentage));
-    moveProgressIndicator($tr, percentage);
-
-    const $actions = $tr.find('td.actions');
-    downloader.on('status/update', (newStatus) => updateActions($actions, downloader, newStatus));
-    downloader.refreshStatus();
-
-    $datatable.row.add($tr).draw(false);
+    this.$tableParent.show();
   }
+
+  addStoredVideos(downloaders) {
+    for (const [id, downloader] of downloaders.entries()) {
+      const downloadRow = this.createRow(id, downloader);
+      this.$datatable.row.add(downloadRow.$tr).draw(false);
+    }
+  }
+
+  downloadVideo(link, onSuccess, onFail) {
+    const id = DownloaderFactory.getIdFromLink(link);
+
+    if (this.rows.has(id)) {
+      const downloadRow = this.rows.get(id);
+
+      return downloadRow.resume(onSuccess, onFail);
+    }
+
+    const downloadRow = this.createRow(id);
+    downloadRow.download(() => this.onStartDownloading(downloadRow, onSuccess), onFail);
+  }
+
+  createRow(id, downloader) {
+    const downloadRow = new DownloadRow(id, downloader);
+
+    this.rows.set(id, downloadRow);
+
+    return downloadRow;
+  }
+
+  onStartDownloading(downloadRow, onSuccess) {
+    this.$datatable.row.add(downloadRow.$tr).draw(false);
+    this.$tableParent.show();
+    onSuccess();
+  }
+
 }
 
-export var downloadVideoAndUpdateTable = function (link, onError, onSuccess) {
-  let $tr;
-  let $actions;
+class DownloadRow {
 
-  const id = DownloaderFactory.getIdFromLink(link);
-  if (DownloaderFactory.has(id)) {
-    $tr = $('table').find('tr#' + id);
-    $actions = $tr.find('td.actions');
+  constructor(id, downloader = null) {
+    this.id = id;
+    this.downloader = downloader;
 
-    const downloader = DownloaderFactory.get(id);
-    if (downloader.status === Downloader.STATUSES.DONE) {
-      $tr.css('background-color', 'rgba(0, 255, 0, 0.2)'); // ToDo animate
+    if (downloader === null) {
+      return;
+    }
+
+    const percentage = downloader.getProgress();
+
+    this.createRow(percentage);
+    this.moveProgressIndicator(percentage);
+  }
+
+  download(onSuccess, onFail) {
+    this.downloader = DownloaderFactory.start(
+      this.id,
+      () => this.onStartDownloading(onSuccess),
+      this.onProgress.bind(this),
+      (error) => this.onError(error, onFail),
+      () => {}
+    );
+  }
+
+  resume(onSuccess, onFail) {
+    if (this.downloader.status === Downloader.STATUSES.DONE) {
+      this.$tr.css('background-color', 'rgba(0, 255, 0, 0.2)'); // ToDo animate
       return onSuccess();
     }
 
-    downloader.on('status/update', (newStatus) => updateActions($actions, downloader, newStatus));
-    downloader.refreshStatus();
-
-    return downloader.resume(onSuccess, onProgress, onFail, () => {});
+    DownloaderFactory.resume(
+      this.id,
+      onSuccess,
+      this.onProgress.bind(this),
+      (error) => this.onError(error, onFail),
+      () => {}
+    );
   }
 
-  const downloader = DownloaderFactory.start(id, onStartDownloading, onProgress, onFail, () => {});
-
-  function onStartDownloading() {
-    $tr = $(videoToHTML(downloader.video));
-    $actions = $tr.find('td.actions');
-    downloader.on('status/update', (newStatus) => updateActions($actions, downloader, newStatus));
-    downloader.refreshStatus();
-
-    $datatable.row.add($tr).draw(false);
-    $tableParent.show();
+  onStartDownloading(onSuccess) {
+    this.createRow();
 
     onSuccess();
   }
 
-  function onProgress(percentage) {
-    $tr.find('td.status').text(Math.round(percentage) + '%');
-    moveProgressIndicator($tr, percentage);
+  onProgress(percentage) {
+    this.$status.text(Math.round(percentage) + '%');
+    this.moveProgressIndicator(percentage);
   }
 
-  function onFail(error) {
-    if (error === 'Already downloading') {
-      return onError(error);
-    }
-
-    onError(error);
+  onError(error, onFail) {
+    onFail(error);
   }
-};
 
-function videoToHTML(video, percentage = 0) {
-    return '<tr id="' + video.id + '">' +
-            '<td class="col-md-5 col-xs-2">' + video.title + '</td>' +
-            '<td class="col-md-3 col-xs-2">' + video.uploader + '</td>' +
-            '<td class="col-md-1 col-xs-2 right">' + video.duration + '</td>' +
-            '<td class="col-md-1 col-xs-2 right">' + prettyBytes(video.size) + '</td>' +
-            '<td class="col-md-1 col-xs-2 status right">' + Math.round(percentage) + '%</td>' +
-            '<td class="col-md-1 col-xs-2 actions"></td>' +
-        '</tr>';
-}
+  createRow(percentage = 0) {
+    this.$tr = $(this.videoToHTML(percentage));
+    this.$actions = this.$tr.find('td.actions');
+    this.$status = this.$tr.find('td.status');
 
-function updateActions($actions, downloader, newStatus) {
-  switch (newStatus) {
-    case Downloader.STATUSES.WAITING:
-      return disableActions($actions);
-    case Downloader.STATUSES.DOWNLOADING:
-      return $actions.html(getPauseButton($actions, downloader));
-    case Downloader.STATUSES.PAUSED:
-      return $actions.html(getResumeButton(DownloaderFactory.getLinkFromId(downloader.video.id)));
-    case Downloader.STATUSES.DONE:
-      return $actions.html(getShowItemInFolderButton(downloader.video.path));
-    default:
-      return $actions.html('');
+    this.downloader.on('status/update', this.updateActions.bind(this));
+    this.downloader.refreshStatus();
   }
-}
 
-function disableActions($actions) {
-  const $actionButton = $actions.find('button');
-  const $actionButtonSpan = $actionButton.find('span');
-  if ($actionButtonSpan.hasClass('fa-play')) {
+  updateActions(newStatus) {
+    switch (newStatus) {
+      case Downloader.STATUSES.WAITING:
+        return this.disableActions();
+      case Downloader.STATUSES.DOWNLOADING:
+        return this.$actions.html(this.getPauseButton());
+      case Downloader.STATUSES.PAUSED:
+        return this.$actions.html(this.getResumeButton());
+      case Downloader.STATUSES.DONE:
+        return this.$actions.html(this.getShowItemInFolderButton());
+      default:
+        return this.$actions.html('');
+    };
+  }
+
+  getResumeButton() {
+    return $('<button title="Resume download" class="btn btn-primary btn-sm">' +
+                '<span class="fa fa-play"></span>' +
+              '</button>').on('click', () => this.resume(console.log, console.error));
+  }
+
+  getShowItemInFolderButton() {
+    return $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
+                '<span class="fa fa-folder-open"></span>' +
+              '</button>').on('click', () => shell.showItemInFolder(this.downloader.video.filePath))
+  }
+
+  getPauseButton($actions, downloader) {
+    return $('<button title="Pause video download" class="btn btn-secondary btn-sm">' +
+                '<span class="fa fa-pause"></span>' +
+              '</button>').on('click', () => {
+        this.disableActions();
+        DownloaderFactory.pause(this.id);
+    });
+  }
+
+  disableActions() {
+    const $actionButton = this.$actions.find('button');
+    const $actionButtonSpan = $actionButton.find('span');
+
     $actionButton.prop('disabled', true);
     $actionButtonSpan.addClass('fa-spin');
   }
-}
 
-function getResumeButton(link) {
-    return $('<button title="Resume download" class="btn btn-primary btn-sm">' +
-                '<span class="fa fa-play"></span>' +
-            '</button>').on('click', () => downloadVideoAndUpdateTable(link, console.log, console.log));
-}
+  moveProgressIndicator(percentage) {
+    if (percentage === 100) {
+      this.$tr.addClass('done');
+    }
 
-function getShowItemInFolderButton(filePath) {
-    return $('<button title="Open the folder containing this file" class="btn btn-secondary btn-sm">' +
-          '<span class="fa fa-folder-open"></span>' +
-      '</button>').on('click', () => shell.showItemInFolder(filePath))
-}
-
-function getPauseButton($actions, downloader) {
-    return $('<button title="Pause video download" class="btn btn-secondary btn-sm">' +
-          '<span class="fa fa-pause"></span>' +
-      '</button>').on('click', () => {
-        $actions.find('button').prop('disabled', true).find('span').addClass('fa-spin');
-        downloader.pause();
-      });
-}
-
-function moveProgressIndicator($tr, percentage) {
-  if (percentage === 100) {
-    $tr.addClass('done');
+    this.$tr.css('background-size', percentage + '% 1px');
   }
 
-  $tr.css('background-size', percentage + '% 1px');
+  videoToHTML(percentage = 0) {
+    return '<tr id="' + this.downloader.video.id + '">' +
+              '<td class="col-md-5 col-xs-2">' + this.downloader.video.title + '</td>' +
+              '<td class="col-md-3 col-xs-2">' + this.downloader.video.uploader + '</td>' +
+              '<td class="col-md-1 col-xs-2 right">' + this.downloader.video.duration + '</td>' +
+              '<td class="col-md-1 col-xs-2 right">' + prettyBytes(this.downloader.video.size) + '</td>' +
+              '<td class="col-md-1 col-xs-2 status right">' + Math.round(percentage) + '%</td>' +
+              '<td class="col-md-1 col-xs-2 actions"></td>' +
+          '</tr>';
+  }
+
 }
