@@ -10,8 +10,8 @@ export default DownloadsTable;
 
 class DownloadsTable {
 
-  constructor() {
-    this.$table = $('table');
+  constructor($table) {
+    this.$table = $table;
     this.$tableParent = this.$table.parent();
     this.$tableParent.hide();
 

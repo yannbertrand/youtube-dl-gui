@@ -16,7 +16,7 @@ export var init = function () {
         }
     });
 
-    const downloadsTable = new DownloadsTable();
+    const downloadsTable = new DownloadsTable($('table'));
 
     $form.on('submit', function (event) {
         event.preventDefault();
