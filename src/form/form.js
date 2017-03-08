@@ -2,50 +2,66 @@ import DownloadsTable from '../table/table';
 
 const isYouTubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//;
 
-export var init = function () {
-    const $body = $('body');
-    const $form = $body.find('form');
-    const $inputGroup = $form.find('.input-group');
-    const $input = $inputGroup.find('input');
-    const $submit = $form.find('button');
-    const $icon = $submit.find('span');
+export default Form;
 
-    $input.on('input', function () {
-        if ($inputGroup.hasClass('has-danger')) {
-            $inputGroup.removeClass('has-danger');
-        }
-    });
+class Form {
 
-    const downloadsTable = new DownloadsTable($('table'));
+  constructor() {
+    this.initElements();
 
-    $form.on('submit', function (event) {
-        event.preventDefault();
+    this.$input.on('input', () => this.onInput());
+    this.$form.on('submit', (event) => this.onFormSubmit(event));
 
-        const link = $input.val();
-        if (! isYouTubeRegex.test(link)) {
-            return onError('Not a YouTube link');
-        }
+    this.downloadsTable = new DownloadsTable($('table'));
+    console.log(this.$inputGroup);
+  }
 
-        $icon.addClass('fa-spin');
-        $submit.prop('disabled', true);
+  onInput() {
+    console.log(this.$inputGroup);
 
-        downloadsTable.downloadVideo(link, onSuccess, onError);
+    if (this.$inputGroup.hasClass('has-danger')) {
+      this.$inputGroup.removeClass('has-danger');
+    }
+  }
 
-        function onSuccess() {
-            $input.val('');
-            $body.removeClass('center-vertical');
-            resetSubmitButton();
-        }
+  onFormSubmit(event) {
+    event.preventDefault();
 
-        function onError(error) {
-            console.log(error);
-            $inputGroup.addClass('has-danger');
-            resetSubmitButton();
-        }
+    const link = this.$input.val();
+    if (! isYouTubeRegex.test(link)) {
+      return this.onError('Not a YouTube link');
+    }
 
-        function resetSubmitButton() {
-            $icon.removeClass('fa-spin').focus();
-            $submit.prop('disabled', false);
-        }
-    });
-};
+    this.$icon.addClass('fa-spin');
+    this.$submitButton.prop('disabled', true);
+
+    this.downloadsTable.downloadVideo(link, this.onSuccess, this.onError);
+  }
+
+  onSuccess() {
+    this.$input.val('');
+    this.$body.removeClass('center-vertical');
+    this.resetSubmitButton();
+  }
+
+  onError(error) {
+    console.log(error);
+    this.$inputGroup.addClass('has-danger');
+    this.resetSubmitButton();
+  }
+
+  resetSubmitButton() {
+    this.$icon.removeClass('fa-spin').focus();
+    this.$submitButton.prop('disabled', false);
+  }
+
+  initElements() {
+    this.$body = $('body');
+    this.$form = this.$body.find('form');
+    this.$inputGroup = this.$form.find('.input-group');
+    this.$input = this.$inputGroup.find('input');
+    this.$submitButton = this.$form.find('button');
+    this.$icon = this.$submitButton.find('span');
+  }
+
+}

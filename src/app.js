@@ -5,7 +5,7 @@
 import os from 'os'; // native node.js module
 import { remote } from 'electron'; // native electron module
 import jetpack from 'fs-jetpack'; // module loaded from npm
-import { init as initForm } from './form/form';
+import Form from './form/form';
 import env from './env';
 
 global.Tether = require('tether');
@@ -26,5 +26,5 @@ var appDir = jetpack.cwd(app.getAppPath());
 console.log('The author of this app is:', appDir.read('package.json', 'json').author);
 
 document.addEventListener('DOMContentLoaded', function () {
-    initForm();
+  new Form();
 });
