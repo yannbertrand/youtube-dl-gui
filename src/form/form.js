@@ -13,12 +13,9 @@ class Form {
     this.$form.on('submit', (event) => this.onFormSubmit(event));
 
     this.downloadsTable = new DownloadsTable($('table'));
-    console.log(this.$inputGroup);
   }
 
   onInput() {
-    console.log(this.$inputGroup);
-
     if (this.$inputGroup.hasClass('has-danger')) {
       this.$inputGroup.removeClass('has-danger');
     }
@@ -35,7 +32,7 @@ class Form {
     this.$icon.addClass('fa-spin');
     this.$submitButton.prop('disabled', true);
 
-    this.downloadsTable.downloadVideo(link, this.onSuccess, this.onError);
+    this.downloadsTable.downloadVideo(link, () => this.onSuccess(), (error) => this.onError(error));
   }
 
   onSuccess() {
