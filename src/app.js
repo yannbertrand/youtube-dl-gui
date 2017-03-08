@@ -6,7 +6,6 @@ import os from 'os'; // native node.js module
 import { remote } from 'electron'; // native electron module
 import jetpack from 'fs-jetpack'; // module loaded from npm
 import { init as initForm } from './form/form';
-import { init as initDownloader } from './downloader/downloader';
 import env from './env';
 
 global.Tether = require('tether');
@@ -28,5 +27,4 @@ console.log('The author of this app is:', appDir.read('package.json', 'json').au
 
 document.addEventListener('DOMContentLoaded', function () {
     initForm();
-    initDownloader();
 });

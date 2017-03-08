@@ -7,8 +7,6 @@ const mkdirp = require('mkdirp');
 const url = require('url');
 const EventEmitter = require('events');
 
-export var init = function () { };
-
 export default DownloadsManager;
 
 const DownloadsManager = (() => {
