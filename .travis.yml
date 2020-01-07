@@ -9,10 +9,7 @@ branches:
     - master
 
 node_js:
-  - "node"
-  - "6"
-  - "5"
-  - "4"
+  - "10"
 
 before_script:
  - chmod +x ./scripts/travis-build.sh
